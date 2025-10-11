@@ -10,6 +10,7 @@ import EditStoryPage from "@/pages/auth/EditStoryPage";
 import GeneratedStory from "@/pages/auth/GeneratedStory";
 import StoryCreator from "@/pages/auth/StoryCreator";
 import MyStories from "@/pages/auth/MyStories";
+import Subscription from "@/pages/auth/Subscription";
 
 interface RouteConfig {
   path: string;
@@ -54,11 +55,17 @@ export const routes: RouteConfig[] = [
     isProtected: false,
     isPublicOnly: true,
   },
+   {
+    path: "/generated-story/:storyId",
+    component: <GeneratedStory />,
+    isPublicOnly: false,
+    isProtected: true,
+  },
   {
     path: "/generated-story",
     component: <GeneratedStory />,
-    isPublicOnly: true,
-    isProtected: false,
+    isPublicOnly: false,
+    isProtected: true,
   },
   {
     path: "/stories/:storyId/edit",
@@ -79,6 +86,11 @@ export const routes: RouteConfig[] = [
   {
     path: "/preview",
     component: <StoryPreview />,
+    isProtected: true,
+  },
+  {
+    path: "/subscription",
+    component: <Subscription/>,
     isProtected: true,
   },
 ];

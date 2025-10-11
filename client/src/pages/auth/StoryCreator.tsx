@@ -18,7 +18,7 @@ export default function StoryCreator() {
   const handleStoryGenerated = (storyData: any) => {
     setCurrentStory(storyData.story);
     setCurrentPages(storyData.pages);
-    navigate(`/stories/${storyData.story.id}/edit`);
+    // navigate(`/stories/${storyData.story.id}/edit`);
   };
 
   return (

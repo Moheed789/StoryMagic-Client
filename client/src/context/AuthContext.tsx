@@ -76,6 +76,14 @@ interface AuthContextType {
   setCurrentStory: React.Dispatch<React.SetStateAction<Story | null>>;
   currentPages: StoryPage[];
   setCurrentPages: React.Dispatch<React.SetStateAction<StoryPage[]>>;
+  selectedPageCount: number;
+  setSelectedPageCount: React.Dispatch<React.SetStateAction<number>>;
+  storyTitle: string;
+  setStoryTitle: React.Dispatch<React.SetStateAction<string>>;
+  authorName: string;
+  setAuthorName: React.Dispatch<React.SetStateAction<string>>;
+  storyId: any;
+  setStoryId: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -87,6 +95,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [step, setStep] = useState<any | null>("form");
   const [currentStep, setCurrentStep] = useState<"idea" | "edit" | "preview">(
     "idea"
+  );
+  const [storyId, setStoryId] = useState();
+  const [selectedPageCount, setSelectedPageCount] = useState<number>(10);
+  const [storyTitle, setStoryTitle] = useState("SADSA");
+  const [authorName, setAuthorName] = useState<string>(
+    (user as any)?.attributes?.name ||
+      (user as any)?.username ||
+      (user as any)?.email ||
+      ""
   );
 
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
@@ -246,6 +263,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setCurrentStory,
         currentPages,
         setCurrentPages,
+
+        selectedPageCount,
+        setSelectedPageCount,
+        storyTitle,
+        setStoryTitle,
+        authorName,
+        setAuthorName,
+
+        storyId,
+        setStoryId,
       }}
     >
       {children}

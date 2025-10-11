@@ -3,11 +3,30 @@ import { Button } from "@/components/ui/button";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import { useCallback } from "react";
 
 export default function Header() {
   const { user, signOutUser, loading } = useAuth();
   console.log({ user });
-  const [, navigate] = useLocation();
+  const [loc, navigate] = useLocation();
+
+  const goHomeBottom = useCallback(() => {
+  const scroll = () =>
+    document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" });
+
+  if (window.location.pathname === "/") {
+    if (window.location.hash !== "#bottom") {
+      history.replaceState(null, "", "/#bottom");
+    }
+    requestAnimationFrame(scroll);
+  } else {
+    navigate("/");
+    setTimeout(() => {
+      history.replaceState(null, "", "/#bottom");
+      scroll();
+    }, 0);
+  }
+}, [navigate]);
 
   if (loading) return null;
 
@@ -24,7 +43,10 @@ export default function Header() {
             <div className="h-8 w-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
               <BookOpenIcon className="h-5 w-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-display font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
+            <h1
+              className="text-xl font-display font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent cursor-pointer"
+              onClick={() => navigate("/")}
+            >
               StoryMagic
             </h1>
           </div>
@@ -32,12 +54,16 @@ export default function Header() {
           <nav className="flex items-center gap-3">
             {user ? (
               <>
-                <Button variant="ghost" className="gap-2">
+                <Button
+                  variant="ghost"
+                  className="gap-2"
+                  onClick={goHomeBottom}
+                >
                   <SparklesIcon className="h-4 w-4" />
                   Create Story
                 </Button>
-                <Button variant="ghost"   onClick={() => navigate("/mystories")}>
-                 My Stories
+                <Button variant="ghost" onClick={() => navigate("/mystories")}>
+                  My Stories
                 </Button>
 
                 <Button variant="ghost">Examples</Button>
