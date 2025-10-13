@@ -100,13 +100,13 @@ export default function Subscription() {
     <div className="min-h-screen w-full bg-[#F7F6FA] text-slate-900">
       <header className="py-10">
         <h1 className="text-center text-[64px] font-[400] text-[#24212C] font-display">
-          Account Settings
+          Pricing Plans
         </h1>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 pb-16">
         <section className="rounded-[16px] bg-white shadow-sm ring-1 ring-slate-100">
-          <div className="border-b border-slate-100 p-6 sm:p-8">
+          {/* <div className="border-b border-slate-100 p-6 sm:p-8">
             <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display">
               Personal Information
             </h2>
@@ -143,9 +143,9 @@ export default function Subscription() {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
-          <div className="p-6 sm:p-8">
+          <div className="p-[42px] sm:p-8">
             <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display">
               Choose your Plan
             </h2>

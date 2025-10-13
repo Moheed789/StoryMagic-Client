@@ -11,6 +11,7 @@ import GeneratedStory from "@/pages/auth/GeneratedStory";
 import StoryCreator from "@/pages/auth/StoryCreator";
 import MyStories from "@/pages/auth/MyStories";
 import Subscription from "@/pages/auth/Subscription";
+import UserProfile from "@/pages/auth/UserProfile";
 
 interface RouteConfig {
   path: string;
@@ -91,6 +92,11 @@ export const routes: RouteConfig[] = [
   {
     path: "/subscription",
     component: <Subscription/>,
+    isProtected: true,
+  },
+  {
+    path: "/userprofile",
+    component: <UserProfile/>,
     isProtected: true,
   },
 ];
