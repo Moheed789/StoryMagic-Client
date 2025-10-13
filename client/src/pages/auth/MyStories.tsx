@@ -210,6 +210,23 @@ const MyStories: React.FC = () => {
 
   const pageTitle = getPageTitle()
 
+  // Get page text content (separate from image description)
+  const getCurrentPageText = () => {
+    // Front cover and back cover mein text content nahi dikhana
+    if (currentPage === 0 && frontCover) return null
+    if (currentPage === totalPages - 1 && backCover) return null
+
+    // Regular story pages mein text content dikhana
+    const pageIndex = currentPage - (frontCover ? 1 : 0)
+    const pageData = storyPages[pageIndex]
+
+    if (pageData) {
+      return pageData.text || pageData.content || null
+    }
+
+    return null
+  }
+
   const getCurrentPageContent = () => {
     if (currentPage === 0 && frontCover) {
       const description = modalStory?.imagePrompt || frontCover.imagePrompt || "No description available"
@@ -220,10 +237,11 @@ const MyStories: React.FC = () => {
       return backCover.imagePrompt || backCover.content || "The End\n\nThank you for reading this magical story!"
     }
 
+    // Regular pages ke liye image description
     const pageIndex = currentPage - (frontCover ? 1 : 0)
     const pageData = storyPages[pageIndex]
     if (pageData) {
-      return pageData.imagePrompt || pageData.content || pageData.imagePrompt || "No content available"
+      return pageData.imagePrompt || "No description available"
     }
 
     return "No content available"
@@ -261,18 +279,18 @@ const MyStories: React.FC = () => {
                 />
                 <button
                   onClick={() => openDeleteModal(story.storyId, story.title || "Untitled Story")}
-                  className="absolute bottom-3 right-3 w-6 h-6 bg-[#FFFFFF] text-[#FF383C] rounded-full flex items-center justify-center text-sm font-bold transition-colors z-10"
+                  className="absolute bottom-3 right-3 w-6 h-6 bg-[#FFFFFF] text-[#FF383C] rounded-[6px] flex items-center justify-center text-sm font-bold transition-colors z-10"
                   title="Delete Story"
                 >
-                  <Trash size={14} />
+                  <Trash size={16} />
                 </button>
               </div>
 
               <div className="bg-[#F4F3F7] p-4">
-                <h3 className="font-semibold text-slate-800 mb-2">{story.title || "Untitled Story"}</h3>
+                <h3 className="text-[24px] leading-[100%] font-display text-slate-800 mb-2">{story.title || "Untitled Story"}</h3>
 
                 <div className="mb-3 text-xs text-slate-500 space-y-1">
-                  <p>Status: <span className="capitalize">{story.status?.toLowerCase()}</span></p>
+                  <p>Status: <span className="capitalize font-story">{story.status?.toLowerCase()}</span></p>
                 </div>
 
                 {!isAuthed && (
@@ -308,7 +326,7 @@ const MyStories: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <div className="relative w-full max-w-[1284px] max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/5">
             <div className="flex items-center justify-between px-8 py-6 border-gray-100">
-              <h2 className="text-[28px] md:text-[32px] font-black tracking-tight text-gray-900">
+              <h2 className="text-[28px] font-display md:text-[32px] font-black tracking-tight text-gray-900">
                 {modalLoading ? "Loading..." : pageTitle}
               </h2>
               <button
@@ -322,22 +340,44 @@ const MyStories: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 py-6 overflow-y-auto max-h-[calc(90vh-200px)]">
               <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-                  {currentPage === 0 ? "Image Description" : "Image Description"}
-                </h3>
-
                 {modalLoading ? (
-                  <div className="space-y-3">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+                    </div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                    </div>
                   </div>
                 ) : (
                   <>
-                    <div className="rounded-[20px] bg-[#EFEFEF] text-gray-700  leading-relaxed w-[570px] p-4 shadow-inner">
-                      <p className="whitespace-pre-line w-[515px] text-[14px]">
-                        {getCurrentPageContent()}
-                      </p>
+                    {getCurrentPageText() && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-story md:text-xl font-semibold text-gray-900 mb-4">
+                          Story Content
+                        </h3>
+                        <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] leading-relaxed w-[570px] p-4 ">
+                          <p className="whitespace-pre-line w-[515px] text-[14px] font-medium">
+                            {getCurrentPageText()}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <h3 className="text-lg font-story  md:text-xl font-semibold text-gray-900 mb-4">
+                        {currentPage === 0 ? "Front Cover Description" :
+                          currentPage === totalPages - 1 ? "Back Cover Description" :
+                            "Image Description"}
+                      </h3>
+                      <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] leading-relaxed w-[570px] p-4 shadow-inner">
+                        <p className="whitespace-pre-line w-[515px] text-[14px]">
+                          {getCurrentPageContent()}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="mt-6">
@@ -350,24 +390,24 @@ const MyStories: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Image Preview</h3>
+                <h3 className="text-lg md:text-xl font-story font-semibold text-gray-900 mb-4">Image Preview</h3>
                 {modalLoading ? (
-                  <div className="  rounded-[20px] animate-pulse" />
+                  <div className="w-[560px] h-[560px] bg-gray-200 rounded-[20px] animate-pulse" />
                 ) : (
-                  <div className=" rounded-[20px] overflow-hidden">
+                  <div className="rounded-[20px] overflow-hidden">
                     {getCurrentPageImage() ? (
                       <img
                         src={getCurrentPageImage()}
                         alt={pageTitle}
-                        className="w-[570px] h-[570px] object-cover"
+                        className="w-[560px] h-[560px] object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.style.display = "none"
-                          target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-500">Failed to load image</div>'
+                          target.parentElement!.innerHTML = '<div class="w-[560px] h-[560px] flex items-center justify-center text-gray-500 bg-gray-100 rounded-[20px]">Failed to load image</div>'
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-500">
+                      <div className="w-[560px] h-[560px] flex items-center justify-center text-gray-500 bg-gray-100 rounded-[20px]">
                         No image available
                       </div>
                     )}
