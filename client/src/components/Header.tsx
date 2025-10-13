@@ -130,7 +130,7 @@ export default function Header() {
                           className="flex items-center gap-[17px] text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-[14px] "
                           onClick={() => {
                             setOpen(false);
-                            navigate("/userprofile");
+                            navigate("/profile");
                           }}
                         >
                           <UserIcon className="h-4 w-4" />
