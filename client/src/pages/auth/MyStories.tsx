@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { fetchAuthSession } from "aws-amplify/auth"
 import { Link } from "wouter"
 import DeleteStoryModal from "../../components/DeleteStoryModal"
+import { Trash } from "lucide-react"
 
 type Story = {
   storyId: string
@@ -232,7 +233,7 @@ const MyStories: React.FC = () => {
         <div className="no-print flex justify-end mb-4">
           <button
             onClick={() => window.print()}
-            className="h-10 px-4 rounded-md bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition"
+            className="h-10 px-4 rounded-md bg-[#8C5AF2] text-white text-sm font-medium hover:bg-violet-700 transition"
           >
             Print All
           </button>
@@ -256,35 +257,29 @@ const MyStories: React.FC = () => {
             return (
               <div
                 key={story.storyId}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-card relative"
+                className=" rounded-[20px] border border-[#CCD8D3] overflow-hidden relative"
               >
-                {/* Delete Button - positioned absolutely in top right */}
-                <button
-                  onClick={() => openDeleteModal(story.storyId, story.title || "Untitled Story")}
-                  className="absolute top-3 right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors z-10 no-print"
-                  title="Delete Story"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                
 
-                <div className="aspect-[16/9] w-full overflow-hidden">
+                <div className="relative aspect-[16/9] w-full">
                   <img
-                    src={img}
+                    src={story.coverImageUrl || "/placeholder-cover.jpg"}
                     alt={story.title}
                     className="h-full w-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/placeholder-cover.jpg";
-                    }}
                   />
+
+                  <button
+                  onClick={() => openDeleteModal(story.storyId, story.title || "Untitled Story")}
+                  className="absolute bottom-3 right-3 w-6 h-6 bg-[#FFFFFF] text-[#FF383C] rounded-full flex items-center justify-center text-sm font-bold transition-colors z-10 no-print"
+                  title="Delete Story"
+                >
+                  <Trash size={14} />
+                </button>
                 </div>
 
-                <div className="p-4">
+                <div className="bg-[#F4F3F7]  p-4">
                   <h3 className="font-semibold text-slate-800 mb-2">{story.title || "Untitled Story"}</h3>
 
-                  {/* Story Info */}
                   <div className="mb-3 text-xs text-slate-500 space-y-1">
                     <p>
                       Status: <span className="capitalize">{story.status?.toLowerCase()}</span>
@@ -303,14 +298,14 @@ const MyStories: React.FC = () => {
                   {/* Buttons (hidden on print with no-print) */}
                   <div className="mt-4 space-y-2">
                     <Link href={`/stories/${story.storyId}/download`} className="block no-print">
-                      <button className="w-full h-10 rounded-md bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition">
+                      <button className="w-full h-10 rounded-md bg-[#8C5AF2] text-white text-[16px] font-semibold hover:bg-[#8C5AF2] transition">
                         Download
                       </button>
                     </Link>
 
                     <button
                       onClick={() => openPreviewModal(story.storyId)}
-                      className="w-full h-10 rounded-md bg-violet-100 text-violet-700 text-sm font-medium hover:bg-violet-200 transition no-print"
+                      className="w-full h-10 rounded-md  text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition no-print"
                     >
                       Preview
                     </button>
@@ -372,7 +367,7 @@ const MyStories: React.FC = () => {
 
                     {/* Primary action "Edit Story" in purple */}
                     <div className="mt-6">
-                      <button className="inline-flex h-10 items-center px-4 rounded-md bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition">
+                      <button className="inline-flex h-10 items-center px-4 rounded-md bg-[#8C5AF2] text-white text-sm font-semibold hover:bg-[#8C5AF2] transition">
                         Edit Story
                       </button>
                     </div>
@@ -419,7 +414,7 @@ const MyStories: React.FC = () => {
                 </button>
 
                 <div className="text-sm text-gray-600">
-                  <span className="text-violet-600 font-semibold">{currentPage + 1}</span>
+                  <span className="text-[#8C5AF2] font-semibold">{currentPage + 1}</span>
                   <span className="mx-1">/</span>
                   <span>{pages.length}</span>
                 </div>
@@ -427,7 +422,7 @@ const MyStories: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(Math.min(pages.length - 1, currentPage + 1))}
                   disabled={currentPage === pages.length - 1}
-                  className="text-sm font-semibold text-violet-600 hover:text-violet-700 disabled:text-gray-300 disabled:cursor-not-allowed"
+                  className="text-sm font-semibold text-[#8C5AF2] hover:text-violet-700 disabled:text-gray-300 disabled:cursor-not-allowed"
                 >
                   {"Next >"}
                 </button>
