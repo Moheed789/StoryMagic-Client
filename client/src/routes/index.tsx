@@ -95,7 +95,7 @@ export const routes: RouteConfig[] = [
     isProtected: true,
   },
   {
-    path: "/userprofile",
+    path: "/profile",
     component: <UserProfile/>,
     isProtected: true,
   },

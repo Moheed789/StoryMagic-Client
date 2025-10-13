@@ -1,12 +1,13 @@
-import React from 'react';
-import { fetchAuthSession } from 'aws-amplify/auth';
+import React from 'react'
+import { fetchAuthSession } from 'aws-amplify/auth'
+import Modal from './Modal'
 
 interface DeleteStoryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  storyId: string;
-  storyTitle: string;
-  onDelete: (storyId: string) => void;
+  isOpen: boolean
+  onClose: () => void
+  storyId: string
+  storyTitle: string
+  onDelete: (storyId: string) => void
 }
 
 const DeleteStoryModal: React.FC<DeleteStoryModalProps> = ({
@@ -16,14 +17,14 @@ const DeleteStoryModal: React.FC<DeleteStoryModalProps> = ({
   storyTitle,
   onDelete
 }) => {
-  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false)
 
   const handleDelete = async () => {
-    setIsDeleting(true);
+    setIsDeleting(true)
     
     try {
-      const session: any = await fetchAuthSession();
-      const token = session?.tokens?.idToken?.toString();
+      const session: any = await fetchAuthSession()
+      const token = session?.tokens?.idToken?.toString()
 
       const res = await fetch(
         `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}`,
@@ -34,26 +35,28 @@ const DeleteStoryModal: React.FC<DeleteStoryModalProps> = ({
             'Content-Type': 'application/json',
           },
         }
-      );
+      )
 
-      if (!res.ok) throw new Error('Failed to delete story');
+      if (!res.ok) throw new Error('Failed to delete story')
 
-      // Call the onDelete callback to update the parent component
-      onDelete(storyId);
-      onClose();
+      onDelete(storyId)
+      onClose()
     } catch (error) {
-      console.error('Error deleting story:', error);
-      alert('Failed to delete story. Please try again.');
+      console.error('Error deleting story:', error)
+      alert('Failed to delete story. Please try again.')
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false)
     }
-  };
-
-  if (!isOpen) return null;
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="max-w-md"
+      showCloseButton={false}
+    >
+      <div className="p-6">
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold text-red-600 mb-2">Delete Story?</h2>
@@ -85,8 +88,8 @@ const DeleteStoryModal: React.FC<DeleteStoryModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
-  );
-};
+    </Modal>
+  )
+}
 
-export default DeleteStoryModal;
+export default DeleteStoryModal
