@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { fetchAuthSession } from "aws-amplify/auth"
 import { Link } from "wouter"
 import DeleteStoryModal from "../../components/DeleteStoryModal"
-import { Trash } from "lucide-react"
+import { ChevronLeft, ChevronRight, Trash } from "lucide-react"
 
 type Story = {
   storyId: string
@@ -36,7 +36,7 @@ type StoryPage = {
 type StoryDetails = {
   storyId: string
   title: string
-  description?: string
+  imagePrompt?: string
   status: string
   totalPages: number
   coverImageUrl?: string
@@ -78,7 +78,6 @@ const MyStories: React.FC = () => {
 
         if (!res.ok) throw new Error("Failed to fetch stories")
         const data = await res.json()
-        console.log(":rocket: ~ loadStories ~ data:", data)
 
         if (data?.stories && Array.isArray(data.stories)) {
           setStories(data.stories)
@@ -115,10 +114,9 @@ const MyStories: React.FC = () => {
 
       if (!res.ok) throw new Error("Failed to fetch story")
       const data = await res.json()
-      console.log(":rocket: ~ openPreviewModal ~ data:", data)
       setModalStory(data)
     } catch (err) {
-      console.error("Error loading story:", err)
+      console.error(err)
     } finally {
       setModalLoading(false)
     }
@@ -130,7 +128,6 @@ const MyStories: React.FC = () => {
     setCurrentPage(0)
   }
 
-  // Delete story functions
   const openDeleteModal = (storyId: string, title: string) => {
     setStoryToDelete({ id: storyId, title })
     setDeleteModalOpen(true)
@@ -142,7 +139,6 @@ const MyStories: React.FC = () => {
   }
 
   const handleStoryDeleted = (deletedStoryId: string) => {
-    // Remove the deleted story from the stories array
     setStories(prevStories => prevStories.filter(story => story.storyId !== deletedStoryId))
   }
 
@@ -192,15 +188,58 @@ const MyStories: React.FC = () => {
   }
 
   const pages = modalStory?.pages || []
-  const currentPageData = pages[currentPage]
-  const pageTitle = currentPage === 0 ? "Front Cover" : `Page ${currentPage + 1}`
 
-  // Get the content to display - check multiple possible field names
-  const getPageContent = (pageData: StoryPage) => {
-    return pageData?.text || pageData?.content || pageData?.imagePrompt || "No content available"
+  const sortedPages = pages.sort((a, b) => {
+    if (a.type === 'COVER_FRONT') return -1
+    if (b.type === 'COVER_FRONT') return 1
+    if (a.type === 'COVER_BACK') return 1
+    if (b.type === 'COVER_BACK') return -1
+    return (a.pageNumber || 0) - (b.pageNumber || 0)
+  })
+
+  const frontCover = sortedPages.find(p => p.type === 'COVER_FRONT')
+  const backCover = sortedPages.find(p => p.type === 'COVER_BACK')
+  const storyPages = sortedPages.filter(p => p.type === 'PAGE')
+  const totalPages = (frontCover ? 1 : 0) + storyPages.length + (backCover ? 1 : 0)
+
+  const getPageTitle = () => {
+    if (currentPage === 0 && frontCover) return "Front Cover"
+    if (currentPage === totalPages - 1 && backCover) return "Back Cover"
+    return `Page ${currentPage - (frontCover ? 0 : -1)}`
   }
 
-  const getPageImage = (pageData: StoryPage) => {
+  const pageTitle = getPageTitle()
+
+  const getCurrentPageContent = () => {
+    if (currentPage === 0 && frontCover) {
+      const description = modalStory?.imagePrompt || frontCover.imagePrompt || "No description available"
+      return `${description}`
+    }
+
+    if (currentPage === totalPages - 1 && backCover) {
+      return backCover.imagePrompt || backCover.content || "The End\n\nThank you for reading this magical story!"
+    }
+
+    const pageIndex = currentPage - (frontCover ? 1 : 0)
+    const pageData = storyPages[pageIndex]
+    if (pageData) {
+      return pageData.imagePrompt || pageData.content || pageData.imagePrompt || "No content available"
+    }
+
+    return "No content available"
+  }
+
+  const getCurrentPageImage = () => {
+    if (currentPage === 0 && frontCover) {
+      return frontCover.imageUrl || modalStory?.coverImageUrl
+    }
+
+    if (currentPage === totalPages - 1 && backCover) {
+      return backCover.imageUrl || modalStory?.coverImageUrl
+    }
+
+    const pageIndex = currentPage - (frontCover ? 1 : 0)
+    const pageData = storyPages[pageIndex]
     return pageData?.imageUrl || modalStory?.coverImageUrl
   }
 
@@ -208,121 +247,67 @@ const MyStories: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 py-10">
       {heading}
 
-      {/* Print styles scoped here */}
-      <style>
-        {`
-          @media print {
-            .no-print { display: none !important; }
-            .print-grid {
-              display: grid !important;
-              grid-template-columns: 1fr 1fr;
-              gap: 16px;
-            }
-            @page { margin: 12mm; }
-            .print-card {
-              break-inside: avoid;
-              page-break-inside: avoid;
-              border: 1px solid #e5e7eb;
-              box-shadow: none !important;
-            }
-          }
-        `}
-      </style>
-
-      {stories.length > 0 && (
-        <div className="no-print flex justify-end mb-4">
-          <button
-            onClick={() => window.print()}
-            className="h-10 px-4 rounded-md bg-[#8C5AF2] text-white text-sm font-medium hover:bg-violet-700 transition"
-          >
-            Print All
-          </button>
-        </div>
-      )}
-
       {stories.length === 0 ? (
         <p className="text-center text-slate-500">No stories found.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 print-grid">
-          {stories.map((story) => {
-            const img = story.coverImageUrl || "/placeholder-cover.jpg"
-            const formatDate = (timestamp: number) => {
-              return new Date(timestamp).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })
-            }
-
-            return (
-              <div
-                key={story.storyId}
-                className=" rounded-[20px] border border-[#CCD8D3] overflow-hidden relative"
-              >
-                
-
-                <div className="relative aspect-[16/9] w-full">
-                  <img
-                    src={story.coverImageUrl || "/placeholder-cover.jpg"}
-                    alt={story.title}
-                    className="h-full w-full object-cover"
-                  />
-
-                  <button
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {stories.map((story) => (
+            <div key={story.storyId} className="rounded-[20px] border border-[#CCD8D3] overflow-hidden relative">
+              <div className="relative aspect-[16/9] w-full">
+                <img
+                  src={story.coverImageUrl || "/placeholder-cover.jpg"}
+                  alt={story.title}
+                  className="h-full w-full object-cover"
+                />
+                <button
                   onClick={() => openDeleteModal(story.storyId, story.title || "Untitled Story")}
-                  className="absolute bottom-3 right-3 w-6 h-6 bg-[#FFFFFF] text-[#FF383C] rounded-full flex items-center justify-center text-sm font-bold transition-colors z-10 no-print"
+                  className="absolute bottom-3 right-3 w-6 h-6 bg-[#FFFFFF] text-[#FF383C] rounded-full flex items-center justify-center text-sm font-bold transition-colors z-10"
                   title="Delete Story"
                 >
                   <Trash size={14} />
                 </button>
+              </div>
+
+              <div className="bg-[#F4F3F7] p-4">
+                <h3 className="font-semibold text-slate-800 mb-2">{story.title || "Untitled Story"}</h3>
+
+                <div className="mb-3 text-xs text-slate-500 space-y-1">
+                  <p>Status: <span className="capitalize">{story.status?.toLowerCase()}</span></p>
                 </div>
 
-                <div className="bg-[#F4F3F7]  p-4">
-                  <h3 className="font-semibold text-slate-800 mb-2">{story.title || "Untitled Story"}</h3>
+                {!isAuthed && (
+                  <p className="mt-1 text-xs text-slate-500 mb-3">
+                    You need to be signed in to Create a Story.
+                    <br />
+                    Please log in to continue.
+                  </p>
+                )}
 
-                  <div className="mb-3 text-xs text-slate-500 space-y-1">
-                    <p>
-                      Status: <span className="capitalize">{story.status?.toLowerCase()}</span>
-                    </p>
-                    {story.createdAt && <p>Created: {formatDate(story.createdAt)}</p>}
-                  </div>
-
-                  {!isAuthed && (
-                    <p className="mt-1 text-xs text-slate-500 mb-3">
-                      You need to be signed in to Create a Story.
-                      <br />
-                      Please log in to continue.
-                    </p>
-                  )}
-
-                  {/* Buttons (hidden on print with no-print) */}
-                  <div className="mt-4 space-y-2">
-                    <Link href={`/stories/${story.storyId}/download`} className="block no-print">
-                      <button className="w-full h-10 rounded-md bg-[#8C5AF2] text-white text-[16px] font-semibold hover:bg-[#8C5AF2] transition">
-                        Download
-                      </button>
-                    </Link>
-
-                    <button
-                      onClick={() => openPreviewModal(story.storyId)}
-                      className="w-full h-10 rounded-md  text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition no-print"
-                    >
-                      Preview
+                <div className="mt-4 space-y-2">
+                  <Link href={`/stories/${story.storyId}/download`} className="block">
+                    <button className="w-full h-10 rounded-md bg-[#8C5AF2] text-white text-[16px] font-semibold hover:bg-[#8C5AF2] transition">
+                      Download
                     </button>
-                  </div>
+                  </Link>
+
+                  <button
+                    onClick={() => openPreviewModal(story.storyId)}
+                    className="w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition"
+                  >
+                    Preview
+                  </button>
                 </div>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       )}
 
       {/* Preview Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-          <div className="relative w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/5">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100">
+          <div className="relative w-full max-w-[1284px] max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/5">
+            <div className="flex items-center justify-between px-8 py-6 border-gray-100">
               <h2 className="text-[28px] md:text-[32px] font-black tracking-tight text-gray-900">
                 {modalLoading ? "Loading..." : pageTitle}
               </h2>
@@ -335,11 +320,11 @@ const MyStories: React.FC = () => {
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 py-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-              {/* Left: Image Description */}
               <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Image Description</h3>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+                  {currentPage === 0 ? "Image Description" : "Image Description"}
+                </h3>
 
                 {modalLoading ? (
                   <div className="space-y-3">
@@ -349,23 +334,12 @@ const MyStories: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    {/* Show story description on front cover, page content on other pages */}
-                    <div className="rounded-xl bg-gray-100/80 text-gray-700 leading-relaxed p-5 md:p-6 shadow-inner">
-                      {currentPage === 0 ? (
-                        // Front Cover - show story description or first page content
-                        <p className="whitespace-pre-line text-[14px] md:text-[15px]">
-                          {modalStory?.description || 
-                           (currentPageData ? getPageContent(currentPageData) : "No description available")}
-                        </p>
-                      ) : (
-                        // Other pages - show page content
-                        <p className="whitespace-pre-line text-[14px] md:text-[15px]">
-                          {currentPageData ? getPageContent(currentPageData) : "No content available"}
-                        </p>
-                      )}
+                    <div className="rounded-[20px] bg-[#EFEFEF] text-gray-700  leading-relaxed w-[570px] p-4 shadow-inner">
+                      <p className="whitespace-pre-line w-[515px] text-[14px]">
+                        {getCurrentPageContent()}
+                      </p>
                     </div>
 
-                    {/* Primary action "Edit Story" in purple */}
                     <div className="mt-6">
                       <button className="inline-flex h-10 items-center px-4 rounded-md bg-[#8C5AF2] text-white text-sm font-semibold hover:bg-[#8C5AF2] transition">
                         Edit Story
@@ -375,21 +349,21 @@ const MyStories: React.FC = () => {
                 )}
               </div>
 
-              {/* Right: Image Preview */}
               <div>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Image Preview</h3>
                 {modalLoading ? (
-                  <div className="aspect-[4/3] bg-gray-200 rounded-xl animate-pulse" />
+                  <div className="  rounded-[20px] animate-pulse" />
                 ) : (
-                  <div className="aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
-                    {getPageImage(currentPageData) ? (
+                  <div className=" rounded-[20px] overflow-hidden">
+                    {getCurrentPageImage() ? (
                       <img
-                        src={getPageImage(currentPageData)}
-                        alt={`Page ${currentPage + 1}`}
-                        className="w-full h-full object-cover"
+                        src={getCurrentPageImage()}
+                        alt={pageTitle}
+                        className="w-[570px] h-[570px] object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.style.display = "none"
+                          target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-500">Failed to load image</div>'
                         }}
                       />
                     ) : (
@@ -402,29 +376,28 @@ const MyStories: React.FC = () => {
               </div>
             </div>
 
-            {/* Modal Footer - Navigation */}
-            {!modalLoading && modalStory && pages.length > 0 && (
-              <div className="px-8 py-5 border-t border-gray-100 flex items-center justify-between">
+            {!modalLoading && modalStory && totalPages > 0 && (
+              <div className="w-full max-w-[246px] flex items-center justify-between mx-auto mb-6">
                 <button
                   onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
                   disabled={currentPage === 0}
-                  className="text-sm font-medium text-gray-500 hover:text-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed"
+                  className="text-sm flex items-center font-medium text-gray-500 hover:text-gray-700 disabled:text-[#999999] disabled:cursor-not-allowed"
                 >
-                  {"< Back"}
+                  <ChevronLeft /> Back
                 </button>
 
                 <div className="text-sm text-gray-600">
                   <span className="text-[#8C5AF2] font-semibold">{currentPage + 1}</span>
                   <span className="mx-1">/</span>
-                  <span>{pages.length}</span>
+                  <span>{totalPages}</span>
                 </div>
 
                 <button
-                  onClick={() => setCurrentPage(Math.min(pages.length - 1, currentPage + 1))}
-                  disabled={currentPage === pages.length - 1}
-                  className="text-sm font-semibold text-[#8C5AF2] hover:text-violet-700 disabled:text-gray-300 disabled:cursor-not-allowed"
+                  onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                  disabled={currentPage === totalPages - 1}
+                  className="text-sm font-semibold text-[#8C5AF2] hover:text-violet-700 disabled:text-[#999999] disabled:cursor-not-allowed flex items-center"
                 >
-                  {"Next >"}
+                  Next <ChevronRight />
                 </button>
               </div>
             )}
@@ -432,7 +405,6 @@ const MyStories: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Modal */}
       <DeleteStoryModal
         isOpen={deleteModalOpen}
         onClose={closeDeleteModal}
