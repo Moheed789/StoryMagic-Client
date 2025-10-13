@@ -186,13 +186,13 @@ export default function Subscription() {
                 </div>
               </article>
             </div>
-            <Button
+            {/* <Button
               onClick={handleCancelSubscription}
               disabled={cancelLoading}
               className="mt-6 bg-red-600 hover:bg-red-700 text-white rounded-lg px-6 py-2 transition active:scale-[.98] disabled:opacity-50"
             >
               {cancelLoading ? "Canceling..." : "Cancel Subscription"}
-            </Button>
+            </Button> */}
           </div>
         </section>
       </main>
