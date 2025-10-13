@@ -51,14 +51,10 @@ const MyStories: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAuthed, setIsAuthed] = useState(false)
-
-  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalStory, setModalStory] = useState<StoryDetails | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
-
-  // Delete modal states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [storyToDelete, setStoryToDelete] = useState<{ id: string; title: string } | null>(null)
 
@@ -321,7 +317,6 @@ const MyStories: React.FC = () => {
         </div>
       )}
 
-      {/* Preview Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <div className="relative w-full max-w-[1284px] max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/5">

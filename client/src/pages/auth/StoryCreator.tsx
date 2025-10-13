@@ -1,6 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
-
 import { useState } from "react";
 import HeroSection from "@/components/HeroSection";
 import {
@@ -18,7 +17,6 @@ export default function StoryCreator() {
   const handleStoryGenerated = (storyData: any) => {
     setCurrentStory(storyData.story);
     setCurrentPages(storyData.pages);
-    // navigate(`/stories/${storyData.story.id}/edit`);
   };
 
   return (

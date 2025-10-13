@@ -2,9 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DownloadIcon, PrinterIcon, ShareIcon, EditIcon, BookIcon } from "lucide-react";
+import {
+  DownloadIcon,
+  PrinterIcon,
+  ShareIcon,
+  EditIcon,
+  BookIcon,
+} from "lucide-react";
 import { useState } from "react";
-import sampleImage from "@assets/generated_images/Sample_storybook_page_illustration_9b27cb31.png";
 
 interface StoryPage {
   id: string;
@@ -33,54 +38,53 @@ interface Story {
 interface StoryPreviewProps {
   story: Story;
   onEdit?: () => void;
-  onDownload?: (format: 'pdf' | 'epub') => void;
+  onDownload?: (format: "pdf" | "epub") => void;
   onShare?: () => void;
 }
 
-export default function StoryPreview({ 
-  story, 
-  onEdit, 
-  onDownload, 
-  onShare 
+export default function StoryPreview({
+  story,
+  onEdit,
+  onDownload,
+  onShare,
 }: StoryPreviewProps) {
   const [selectedPage, setSelectedPage] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleDownload = async (format: 'pdf' | 'epub') => {
+  const handleDownload = async (format: "pdf" | "epub") => {
     setIsExporting(true);
     console.log(`Downloading ${format.toUpperCase()}:`, story.title);
-    
+
     try {
-      if (format === 'pdf') {
-        // Real PDF export
+      if (format === "pdf") {
         const response = await fetch(`/api/stories/${story.id}/export/pdf`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to export PDF');
+          throw new Error("Failed to export PDF");
         }
-        
-        // Get the PDF blob
+
         const blob = await response.blob();
-        
-        // Create a download link and trigger download
+
         const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
-        link.download = `${story.title.replace(/[^a-zA-Z0-9]/g, '_')}_storybook.pdf`;
+        link.download = `${story.title.replace(
+          /[^a-zA-Z0-9]/g,
+          "_"
+        )}_storybook.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
-        console.log('PDF exported successfully!');
+
+        console.log("PDF exported successfully!");
         onDownload?.(format);
       } else {
-        // ePub format not implemented yet
-        alert('ePub export is coming soon!');
+        alert("ePub export is coming soon!");
       }
     } catch (error) {
-      console.error('Export failed:', error);
-      alert('Failed to export PDF. Please try again.');
+      console.error("Export failed:", error);
+      alert("Failed to export PDF. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -96,14 +100,17 @@ export default function StoryPreview({
               <BookIcon className="h-5 w-5 text-primary" />
               <Badge variant="secondary">Ready to Export</Badge>
             </div>
-            <h1 className="text-2xl font-display font-bold mb-2" data-testid="text-story-title">
+            <h1
+              className="text-2xl font-display font-bold mb-2"
+              data-testid="text-story-title"
+            >
               {story.title}
             </h1>
             <p className="text-muted-foreground font-story">
               by {story.author} • {story.pages.length} pages
             </p>
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               data-testid="button-edit-story"
@@ -118,7 +125,7 @@ export default function StoryPreview({
               data-testid="button-share-story"
               variant="outline"
               onClick={() => {
-                console.log('Share story clicked');
+                console.log("Share story clicked");
                 onShare?.();
               }}
               className="gap-1"
@@ -143,15 +150,15 @@ export default function StoryPreview({
                   onClick={() => setSelectedPage(index)}
                   className={`w-full text-left p-3 rounded-lg transition-colors hover-elevate ${
                     selectedPage === index
-                      ? 'bg-primary/10 border border-primary/20'
-                      : 'bg-muted/30 hover:bg-muted/50'
+                      ? "bg-primary/10 border border-primary/20"
+                      : "bg-muted/30 hover:bg-muted/50"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-9 bg-muted rounded border flex-shrink-0 overflow-hidden">
                       {page.imageUrl ? (
-                        <img 
-                          src={page.imageUrl} 
+                        <img
+                          src={page.imageUrl}
                           alt={`Page ${page.pageNumber} thumbnail`}
                           className="w-full h-full object-cover"
                         />
@@ -160,7 +167,9 @@ export default function StoryPreview({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">Page {page.pageNumber}</p>
+                      <p className="font-medium text-sm">
+                        Page {page.pageNumber}
+                      </p>
                       <p className="text-xs text-muted-foreground truncate font-story">
                         {page.text.substring(0, 40)}...
                       </p>
@@ -185,7 +194,9 @@ export default function StoryPreview({
                     data-testid="button-prev-page"
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedPage(Math.max(0, selectedPage - 1))}
+                    onClick={() =>
+                      setSelectedPage(Math.max(0, selectedPage - 1))
+                    }
                     disabled={selectedPage === 0}
                   >
                     ← Prev
@@ -194,7 +205,11 @@ export default function StoryPreview({
                     data-testid="button-next-page"
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedPage(Math.min(story.pages.length - 1, selectedPage + 1))}
+                    onClick={() =>
+                      setSelectedPage(
+                        Math.min(story.pages.length - 1, selectedPage + 1)
+                      )
+                    }
                     disabled={selectedPage === story.pages.length - 1}
                   >
                     Next →
@@ -202,9 +217,7 @@ export default function StoryPreview({
                 </div>
               </div>
 
-              {/* Page Content */}
               <div className="space-y-4">
-                {/* Image */}
                 <div className="aspect-[4/3] bg-muted/30 rounded-lg overflow-hidden">
                   {story.pages[selectedPage].imageUrl ? (
                     <img
@@ -225,7 +238,7 @@ export default function StoryPreview({
 
                 {/* Text */}
                 <div className="bg-muted/20 rounded-lg p-4">
-                  <p 
+                  <p
                     className="font-story text-base leading-relaxed"
                     data-testid={`text-page-content-${selectedPage + 1}`}
                   >
@@ -241,37 +254,39 @@ export default function StoryPreview({
       {/* Export Actions */}
       <Card className="p-6">
         <div className="text-center space-y-4">
-          <h3 className="font-display font-bold text-lg">Ready to Share Your Story?</h3>
+          <h3 className="font-display font-bold text-lg">
+            Ready to Share Your Story?
+          </h3>
           <p className="text-muted-foreground font-story">
             Download your finished storybook or order a printed copy
           </p>
-          
+
           <div className="flex justify-center gap-3">
             <Button
               data-testid="button-download-pdf"
-              onClick={() => handleDownload('pdf')}
+              onClick={() => handleDownload("pdf")}
               disabled={isExporting}
               className="gap-2"
             >
               <DownloadIcon className="h-4 w-4" />
-              {isExporting ? 'Generating...' : 'Download PDF'}
+              {isExporting ? "Generating..." : "Download PDF"}
             </Button>
-            
+
             <Button
               data-testid="button-download-epub"
               variant="outline"
-              onClick={() => handleDownload('epub')}
+              onClick={() => handleDownload("epub")}
               disabled={isExporting}
               className="gap-2"
             >
               <DownloadIcon className="h-4 w-4" />
               Download ePub
             </Button>
-            
+
             <Button
               data-testid="button-order-print"
               variant="outline"
-              onClick={() => console.log('Order print version')}
+              onClick={() => console.log("Order print version")}
               className="gap-2"
             >
               <PrinterIcon className="h-4 w-4" />

@@ -1,6 +1,101 @@
-import React from "react";
+import React, { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { fetchAuthSession } from "aws-amplify/auth";
+import { Button } from "@/components/ui/button";
+import { ConsoleLogWriter } from "drizzle-orm";
 
 export default function Subscription() {
+  const { user, getUserProfile } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const subscriptionStatus = user?.apiProfile?.subscriptionStatus === "premium";
+  // ----------------------------
+  // Upgrade to Pro Handler
+  // ----------------------------
+  const handleUpgradeToPro = async () => {
+    try {
+      setLoading(true);
+      const session: any = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+
+      if (!token) {
+        alert("Please login first");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stripe/checkout-session",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Checkout failed");
+
+      const checkoutUrl =
+        data.url ||
+        data.sessionUrl ||
+        data.checkout_url ||
+        data.checkoutUrl ||
+        data.session?.url;
+
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        alert("Checkout URL not found");
+      }
+    } catch (error: any) {
+      alert(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ----------------------------
+  // Cancel Subscription Handler
+  // ----------------------------
+  const handleCancelSubscription = async () => {
+    try {
+      setCancelLoading(true);
+
+      const session: any = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+
+      if (!token) {
+        alert("Please login first");
+        setCancelLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/cancel-plan",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Cancel failed");
+
+      alert("Subscription canceled successfully!");
+      await getUserProfile();
+    } catch (error: any) {
+      alert(`Failed to cancel: ${error.message}`);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#F7F6FA] text-slate-900">
       <header className="py-10">
@@ -9,12 +104,10 @@ export default function Subscription() {
         </h1>
       </header>
 
-      {/* Main Card */}
       <main className="mx-auto max-w-6xl px-4 pb-16">
         <section className="rounded-[16px] bg-white shadow-sm ring-1 ring-slate-100">
-          {/* Personal Info */}
           <div className="border-b border-slate-100 p-6 sm:p-8">
-            <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display ">
+            <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display">
               Personal Information
             </h2>
 
@@ -25,8 +118,8 @@ export default function Subscription() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="John"
-                  className="w-full text-[#BBB0CF] bg-[#F5F5F5] rounded-[8px] h-[43px]  px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
+                  defaultValue={user?.apiProfile?.fullName || "John"}
+                  className="w-full text-[#BBB0CF] bg-[#F5F5F5] rounded-[8px] h-[43px] px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
                 />
               </div>
 
@@ -36,7 +129,7 @@ export default function Subscription() {
                 </label>
                 <input
                   type="email"
-                  defaultValue="JohnSmith2023@gmail.com"
+                  defaultValue={user?.email || "JohnSmith2023@gmail.com"}
                   className="w-full bg-[#F5F5F5] rounded-[8px] text-[#BBB0CF] h-[43px] px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
                 />
               </div>
@@ -52,14 +145,13 @@ export default function Subscription() {
             </div>
           </div>
 
-          {/* Plans */}
           <div className="p-6 sm:p-8">
             <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display">
               Choose your Plan
             </h2>
 
             <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Free Plan */}
+              {/* ---------------- FREE PLAN ---------------- */}
               <article className="bg-[#E7E4EC] border border-[#C3C3C3] py-[36px] px-[30px] rounded-[20px]">
                 <p className="text-[26px] text-[#000000] font-display">
                   Free Plan
@@ -89,33 +181,35 @@ export default function Subscription() {
                   </ul>
                 </div>
 
-                <div className="mt-[75px] ">
-                  <button className="w-full rounded-lg h-[43px] bg-[#8C5AF2] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#825fc7] active:scale-[.98]">
+                <div className="mt-[75px]">
+                  <button
+                    disabled
+                    className="w-full rounded-lg h-[43px] bg-[#8C5AF2] px-4 py-2 text-sm font-semibold text-white transition active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     Get Started Free
                   </button>
                 </div>
               </article>
+
+              {/* ---------------- PRO PLAN ---------------- */}
               <article className="bg-gradient-to-br from-[#8C5AF2] to-[#F5C73D] border border-[#C3C3C3] py-[36px] px-[30px] rounded-[20px] text-white">
                 <p className="text-[26px] font-display">Pro Plan</p>
 
                 <div className="mt-3 flex items-end gap-2">
                   <div className="text-4xl font-extrabold tracking-tight">
-                    $ 9.00
+                    $9.00
                   </div>
                   <div className="pb-1 text-white/80">/month</div>
                 </div>
 
                 <p className="mt-1 text-[13px] text-white/80">
-                  Start creating — no credit card needed.
+                  Unlock unlimited story generation & premium features.
                 </p>
 
                 <div className="mt-5">
                   <p className="text-[22px] font-sans font-[700]">Highlights</p>
                   <ul className="mt-3 space-y-2 text-sm text-white/90">
-                    <li>
-                      Unlimited stories (paying users on your IP are exempt from
-                      limits)
-                    </li>
+                    <li>Unlimited stories</li>
                     <li>Priority generation queue</li>
                     <li>Premium PDF (print-ready)</li>
                     <li>Saved prompts & favorites</li>
@@ -124,12 +218,30 @@ export default function Subscription() {
                 </div>
 
                 <div className="mt-[75px]">
-                  <button className="w-full rounded-lg h-[43px] bg-white text-[#8C5AF2] px-4 py-2 text-sm font-semibold transition hover:bg-white/90 active:scale-[.98]">
-                    Upgrade to Pro
+                  <button
+                    onClick={!loading ? handleUpgradeToPro : undefined}
+                    disabled={loading || subscriptionStatus}
+                    className={`w-full rounded-lg h-[43px] bg-white text-[#8C5AF2] px-4 py-2 text-sm font-semibold transition active:scale-[.98]
+                      ${
+                        loading || subscriptionStatus
+                          ? "opacity-50 cursor-not-allowed bg-white/80"
+                          : "hover:bg-white/90"
+                      }`}
+                  >
+                    {loading ? "Redirecting to Checkout..." : "Upgrade to Pro"}
                   </button>
                 </div>
               </article>
             </div>
+
+            {/* ---------------- CANCEL BUTTON ---------------- */}
+            <Button
+              onClick={handleCancelSubscription}
+              disabled={cancelLoading}
+              className="mt-6 bg-red-600 hover:bg-red-700 text-white rounded-lg px-6 py-2 transition active:scale-[.98] disabled:opacity-50"
+            >
+              {cancelLoading ? "Canceling..." : "Cancel Subscription"}
+            </Button>
           </div>
         </section>
       </main>

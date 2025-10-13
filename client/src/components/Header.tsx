@@ -11,22 +11,18 @@ export default function Header() {
   const [loc, navigate] = useLocation();
 
   const goHomeBottom = useCallback(() => {
-  const scroll = () =>
-    document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" });
+    const scroll = () =>
+      document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" });
 
-  if (window.location.pathname === "/") {
-    if (window.location.hash !== "#bottom") {
-      history.replaceState(null, "", "/#bottom");
+    if (window.location.pathname === "/") {
+      requestAnimationFrame(scroll);
+    } else {
+      navigate("/");
+      setTimeout(() => {
+        scroll();
+      }, 100);
     }
-    requestAnimationFrame(scroll);
-  } else {
-    navigate("/");
-    setTimeout(() => {
-      history.replaceState(null, "", "/#bottom");
-      scroll();
-    }, 0);
-  }
-}, [navigate]);
+  }, [navigate]);
 
   if (loading) return null;
 
