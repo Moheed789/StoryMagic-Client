@@ -9,9 +9,6 @@ export default function Subscription() {
   const [loading, setLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const subscriptionStatus = user?.apiProfile?.subscriptionStatus === "premium";
-  // ----------------------------
-  // Upgrade to Pro Handler
-  // ----------------------------
   const handleUpgradeToPro = async () => {
     try {
       setLoading(true);
@@ -57,9 +54,6 @@ export default function Subscription() {
     }
   };
 
-  // ----------------------------
-  // Cancel Subscription Handler
-  // ----------------------------
   const handleCancelSubscription = async () => {
     try {
       setCancelLoading(true);
@@ -106,52 +100,12 @@ export default function Subscription() {
 
       <main className="mx-auto max-w-6xl px-4 pb-16">
         <section className="rounded-[16px] bg-white shadow-sm ring-1 ring-slate-100">
-          {/* <div className="border-b border-slate-100 p-6 sm:p-8">
-            <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display">
-              Personal Information
-            </h2>
-
-            <div className="mt-6 grid max-w-lg gap-4">
-              <div>
-                <label className="mb-1 block text-[16px] font-[400] font-story text-[#999999]">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  defaultValue={user?.apiProfile?.fullName || "John"}
-                  className="w-full text-[#BBB0CF] bg-[#F5F5F5] rounded-[8px] h-[43px] px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[16px] font-[400] font-story text-[#999999]">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  defaultValue={user?.email || "JohnSmith2023@gmail.com"}
-                  className="w-full bg-[#F5F5F5] rounded-[8px] text-[#BBB0CF] h-[43px] px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
-                />
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="button"
-                  className="inline-flex items-center rounded-lg bg-[#8C5AF2] px-[54px] py-[13px] text-sm font-semibold text-white shadow-sm transition active:scale-[.98] hover:bg-[#825fc7]"
-                >
-                  Edit Profile
-                </button>
-              </div>
-            </div>
-          </div> */}
-
           <div className="p-[42px] sm:p-8">
             <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display">
               Choose your Plan
             </h2>
 
-            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* ---------------- FREE PLAN ---------------- */}
+            <div className="mt-[50px] grid grid-cols-1 gap-6 md:grid-cols-2">
               <article className="bg-[#E7E4EC] border border-[#C3C3C3] py-[36px] px-[30px] rounded-[20px]">
                 <p className="text-[26px] text-[#000000] font-display">
                   Free Plan
@@ -181,17 +135,16 @@ export default function Subscription() {
                   </ul>
                 </div>
 
-                <div className="mt-[75px]">
-                  <button
-                    disabled
-                    className="w-full rounded-lg h-[43px] bg-[#8C5AF2] px-4 py-2 text-sm font-semibold text-white transition active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Get Started Free
-                  </button>
+                <div className="mt-[75px] flex justify-center">
+                  <div className="flex items-center gap-2 rounded-lg  px-4 py-2">
+                    <span className="h-2 w-2 rounded-full bg-[#8C5AF2]"></span>
+                    <span className="text-[#8C5AF2] font-semibold text-sm">
+                      Current Plan (Activated)
+                    </span>
+                  </div>
                 </div>
               </article>
 
-              {/* ---------------- PRO PLAN ---------------- */}
               <article className="bg-gradient-to-br from-[#8C5AF2] to-[#F5C73D] border border-[#C3C3C3] py-[36px] px-[30px] rounded-[20px] text-white">
                 <p className="text-[26px] font-display">Pro Plan</p>
 
@@ -233,8 +186,6 @@ export default function Subscription() {
                 </div>
               </article>
             </div>
-
-            {/* ---------------- CANCEL BUTTON ---------------- */}
             <Button
               onClick={handleCancelSubscription}
               disabled={cancelLoading}

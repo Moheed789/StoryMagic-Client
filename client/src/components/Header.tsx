@@ -88,12 +88,11 @@ export default function Header() {
                   Create Story
                 </Button>
 
-                {/* Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <Button
                     variant="ghost"
                     className={`
-                flex items-center justify-between  w-[160px] px-[16px] rounded-lg
+                flex items-center justify-between px-[16px] rounded-lg
                 text-[#8C5AF2] font-medium transition-all duration-200
                 ${open ? "bg-[#F0F0F0]" : ""}
                 hover:bg-[#F0F0F0]
@@ -102,7 +101,6 @@ export default function Header() {
                     onClick={() => setOpen(!open)}
                   >
                     {user.apiProfile?.fullName || "John Smith"}
-                    {/* ▼ rotates when active */}
                     <ChevronDown
                       className={`h-4 w-4 transform transition-transform duration-300  ${
                         open
