@@ -71,7 +71,6 @@ const MyStories: React.FC = () => {
 
   const [purchaseLoading, setPurchaseLoading] = useState<{ [storyId: string]: { pdf?: boolean; book?: boolean } }>({})
 
-  // Add selected download option state for each story
   const [selectedDownloadOption, setSelectedDownloadOption] = useState<{ [storyId: string]: 'pdf_only' | 'pdf_and_book' }>({})
 
   useEffect(() => {
@@ -180,13 +179,15 @@ const MyStories: React.FC = () => {
         return
       }
 
+      // Show loading state
       const story = stories.find(s => s.storyId === storyId)
       if (!story) {
         alert("Story not found")
         return
       }
 
-      // Call the download API
+      console.log('Starting download for:', storyId, 'option:', downloadOption)
+
       const response = await fetch(
         `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}/export-pdf`,
         {
@@ -199,31 +200,58 @@ const MyStories: React.FC = () => {
       )
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Download API error response:', errorText)
         throw new Error(`Download failed: ${response.status} ${response.statusText}`)
       }
 
       const contentType = response.headers.get('content-type')
-      if (!contentType?.includes('application/pdf')) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Invalid response format")
+      console.log('Response content-type:', contentType)
+
+      if (contentType?.includes('application/json')) {
+        const jsonData = await response.json()
+        console.log('JSON response:', jsonData)
+        
+        if (jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl) {
+          const downloadUrl = jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl
+          
+          const link = document.createElement('a')
+          link.href = downloadUrl
+          link.download = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
+          link.target = '_blank'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          
+          console.log(`Successfully initiated download from URL: ${downloadUrl}`)
+          return
+        }
+                throw new Error(jsonData.message || "No download URL provided")
       }
 
-      const blob = await response.blob()
+      if (contentType?.includes('application/pdf')) {
+        const blob = await response.blob()
+        
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        
+        const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
+        link.download = filename
+        
+        document.body.appendChild(link)
+        link.click()
+        
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+        
+        console.log(`Successfully downloaded PDF blob for: ${storyId}`)
+        return
+      }
 
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-
-      const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
-      link.download = filename
-
-      document.body.appendChild(link)
-      link.click()
-
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-
-      console.log(`Successfully downloaded ${downloadOption} for story: ${storyId}`)
+      const responseText = await response.text()
+      console.log('Unknown response format:', responseText)
+      throw new Error("Unsupported response format")
 
     } catch (error: any) {
       console.error('Download error:', error)
@@ -264,7 +292,6 @@ const MyStories: React.FC = () => {
     return false
   }
 
-  // Check if option is available for purchase
   const isOptionAvailable = (story: Story, option: 'pdf_only' | 'pdf_and_book') => {
     if (story.downloadOptions && Array.isArray(story.downloadOptions)) {
       return story.downloadOptions.includes(option)
@@ -421,7 +448,6 @@ const MyStories: React.FC = () => {
 
             return (
               <div key={story.storyId} className="rounded-[20px] border  border-[#CCD8D3] bg-[#F4F3F7] w-[479px] shadow-sm overflow-hidden">
-                {/* Story Image */}
                 <div className="relative aspect-[16/9] w-full">
                   <img
                     src={story.coverImageUrl || "/placeholder-cover.jpg"}
@@ -535,21 +561,18 @@ const MyStories: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Download Status Text */}
                   {!pdfPurchased && !bookPurchased && (
                     <p className="text-[14px] text-[#8C5AF2] italic mb-6 font-medium">
                       Purchase required to download
                     </p>
                   )}
 
-                  {/* Download Available Text for purchased items */}
                   {(pdfPurchased || bookPurchased) && (
                     <p className="text-[14px] text-[#8C5AF2] italic mb-6 font-medium">
                       {selectedOption === 'pdf_and_book' ? "Download PDF + Book" : "Download PDF Only"}
                     </p>
                   )}
 
-                  {/* Action Buttons */}
                   <div className="space-y-3">
                     <button
                       onClick={() => handleDownload(story.storyId, selectedOption)}
