@@ -164,9 +164,10 @@ const UserProfile = () => {
                   Email
                 </label>
                 <input
+                  disabled
                   type="email"
                   defaultValue={user?.apiProfile?.email}
-                  className="w-full bg-[#F5F5F5] rounded-[8px] text-[#BBB0CF] h-[43px] px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
+                  className="w-full bg-[#F5F5F5] rounded-[8px] cursor-not-allowed text-[#BBB0CF] h-[43px] px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
                 />
               </div>
 
@@ -365,10 +366,9 @@ const UserProfile = () => {
                       onClick={!loading ? handleUpgradeToPro : undefined}
                       disabled={loading}
                       className={`w-full rounded-[10px] h-[44px] bg-white text-[#7C4DFF] px-4 text-sm font-semibold transition active:scale-[.98]
-                        ${
-                          loading
-                            ? "opacity-60 cursor-not-allowed"
-                            : "hover:bg-white/90"
+                        ${loading
+                          ? "opacity-60 cursor-not-allowed"
+                          : "hover:bg-white/90"
                         }`}
                     >
                       {loading ? "Redirecting..." : "Upgrade to Pro"}
