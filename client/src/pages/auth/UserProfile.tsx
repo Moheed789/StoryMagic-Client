@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchAuthSession } from "aws-amplify/auth";
@@ -165,8 +164,11 @@ const UserProfile = () => {
                 </label>
                 <input
                   type="email"
-                  defaultValue={user?.apiProfile?.email}
-                  className="w-full bg-[#F5F5F5] rounded-[8px] text-[#BBB0CF] h-[43px] px-3 py-2 text-[16px] font-story outline-none focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20"
+                  value={user?.apiProfile?.email || ""}
+                  readOnly
+                  className="w-full bg-[#F5F5F5] rounded-[8px] text-[#7A6B93] h-[43px] px-3 py-2 text-[16px] font-story outline-none 
+             focus:border-[#6A4DF5] focus:bg-white focus:ring-2 focus:ring-[#6A4DF5]/20
+             cursor-not-allowed"
                 />
               </div>
 

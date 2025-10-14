@@ -10,7 +10,6 @@ type Form = { code: string };
 export default function VerifyForgotPassword() {
   const [, navigate] = useLocation();
   const { forgotPassword } = useAuth();
-
   const qs = useMemo(() => new URLSearchParams(window.location.search), []);
   const email = qs.get("email") || "";
 

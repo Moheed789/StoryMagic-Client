@@ -1,41 +1,41 @@
-import React from "react"
-import Modal from "./Modal"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import React from "react";
+import Modal from "./Modal";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface StoryPage {
-  pageNumber?: number
-  text?: string
-  content?: string
-  imageUrl?: string
-  imagePrompt?: string
-  createdAt?: number
-  pageId?: string
-  pk?: string
-  sk?: string
-  storyId?: string
-  type?: string
+  pageNumber?: number;
+  text?: string;
+  content?: string;
+  imageUrl?: string;
+  imagePrompt?: string;
+  createdAt?: number;
+  pageId?: string;
+  pk?: string;
+  sk?: string;
+  storyId?: string;
+  type?: string;
 }
 
 interface StoryDetails {
-  storyId: string
-  title: string
-  imagePrompt?: string
-  status: string
-  totalPages: number
-  coverImageUrl?: string
-  createdAt: number
-  updatedAt: number
-  userId: string
-  pages?: StoryPage[]
+  storyId: string;
+  title: string;
+  imagePrompt?: string;
+  status: string;
+  totalPages: number;
+  coverImageUrl?: string;
+  createdAt: number;
+  updatedAt: number;
+  userId: string;
+  pages?: StoryPage[];
 }
 
 interface StoryPreviewModalProps {
-  isOpen: boolean
-  onClose: () => void
-  modalStory: StoryDetails | null
-  modalLoading: boolean
-  currentPage: number
-  setCurrentPage: (page: number) => void
+  isOpen: boolean;
+  onClose: () => void;
+  modalStory: StoryDetails | null;
+  modalLoading: boolean;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
 }
 
 const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
@@ -44,75 +44,83 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
   modalStory,
   modalLoading,
   currentPage,
-  setCurrentPage
+  setCurrentPage,
 }) => {
-  const pages = modalStory?.pages || []
-  
-  const sortedPages = pages.sort((a, b) => {
-    if (a.type === 'COVER_FRONT') return -1
-    if (b.type === 'COVER_FRONT') return 1
-    if (a.type === 'COVER_BACK') return 1
-    if (b.type === 'COVER_BACK') return -1
-    return (a.pageNumber || 0) - (b.pageNumber || 0)
-  })
+  const pages = modalStory?.pages || [];
 
-  const frontCover = sortedPages.find(p => p.type === 'COVER_FRONT')
-  const backCover = sortedPages.find(p => p.type === 'COVER_BACK')
-  const storyPages = sortedPages.filter(p => p.type === 'PAGE')
-  const totalPages = (frontCover ? 1 : 0) + storyPages.length + (backCover ? 1 : 0)
+  const sortedPages = pages.sort((a, b) => {
+    if (a.type === "COVER_FRONT") return -1;
+    if (b.type === "COVER_FRONT") return 1;
+    if (a.type === "COVER_BACK") return 1;
+    if (b.type === "COVER_BACK") return -1;
+    return (a.pageNumber || 0) - (b.pageNumber || 0);
+  });
+
+  const frontCover = sortedPages.find((p) => p.type === "COVER_FRONT");
+  const backCover = sortedPages.find((p) => p.type === "COVER_BACK");
+  const storyPages = sortedPages.filter((p) => p.type === "PAGE");
+  const totalPages =
+    (frontCover ? 1 : 0) + storyPages.length + (backCover ? 1 : 0);
 
   const getPageTitle = () => {
-    if (currentPage === 0 && frontCover) return "Front Cover"
-    if (currentPage === totalPages - 1 && backCover) return "Back Cover"
-    return `Page ${currentPage - (frontCover ? 0 : -1)}`
-  }
+    if (currentPage === 0 && frontCover) return "Front Cover";
+    if (currentPage === totalPages - 1 && backCover) return "Back Cover";
+    return `Page ${currentPage - (frontCover ? 0 : -1)}`;
+  };
 
   const getCurrentPageText = () => {
-    if (currentPage === 0 && frontCover) return null
-    if (currentPage === totalPages - 1 && backCover) return null
+    if (currentPage === 0 && frontCover) return null;
+    if (currentPage === totalPages - 1 && backCover) return null;
 
-    const pageIndex = currentPage - (frontCover ? 1 : 0)
-    const pageData = storyPages[pageIndex]
+    const pageIndex = currentPage - (frontCover ? 1 : 0);
+    const pageData = storyPages[pageIndex];
 
     if (pageData) {
-      return pageData.text || pageData.content || null
+      return pageData.text || pageData.content || null;
     }
 
-    return null
-  }
+    return null;
+  };
 
   const getCurrentPageContent = () => {
     if (currentPage === 0 && frontCover) {
-      const description = modalStory?.imagePrompt || frontCover.imagePrompt || "No description available"
-      return `${description}`
+      const description =
+        modalStory?.imagePrompt ||
+        frontCover.imagePrompt ||
+        "No description available";
+      return `${description}`;
     }
 
     if (currentPage === totalPages - 1 && backCover) {
-      return backCover.imagePrompt || backCover.content || "The End\n\nThank you for reading this magical story!"
+      return (
+        backCover.imagePrompt ||
+        backCover.content ||
+        "The End\n\nThank you for reading this magical story!"
+      );
     }
 
-    const pageIndex = currentPage - (frontCover ? 1 : 0)
-    const pageData = storyPages[pageIndex]
+    const pageIndex = currentPage - (frontCover ? 1 : 0);
+    const pageData = storyPages[pageIndex];
     if (pageData) {
-      return pageData.imagePrompt || "No description available"
+      return pageData.imagePrompt || "No description available";
     }
 
-    return "No content available"
-  }
+    return "No content available";
+  };
 
   const getCurrentPageImage = () => {
     if (currentPage === 0 && frontCover) {
-      return frontCover.imageUrl || modalStory?.coverImageUrl
+      return frontCover.imageUrl || modalStory?.coverImageUrl;
     }
 
     if (currentPage === totalPages - 1 && backCover) {
-      return backCover.imageUrl || modalStory?.coverImageUrl
+      return backCover.imageUrl || modalStory?.coverImageUrl;
     }
 
-    const pageIndex = currentPage - (frontCover ? 1 : 0)
-    const pageData = storyPages[pageIndex]
-    return pageData?.imageUrl || modalStory?.coverImageUrl
-  }
+    const pageIndex = currentPage - (frontCover ? 1 : 0);
+    const pageData = storyPages[pageIndex];
+    return pageData?.imageUrl || modalStory?.coverImageUrl;
+  };
 
   return (
     <Modal
@@ -152,9 +160,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
               <div>
                 <h3 className="text-lg font-story md:text-xl font-semibold text-gray-900 mb-4">
-                  {currentPage === 0 ? "Front Cover Description" :
-                    currentPage === totalPages - 1 ? "Back Cover Description" :
-                      "Image Description"}
+                  {currentPage === 0
+                    ? "Front Cover Description"
+                    : currentPage === totalPages - 1
+                    ? "Back Cover Description"
+                    : "Image Description"}
                 </h3>
                 <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] leading-relaxed w-[570px] p-4 shadow-inner">
                   <p className="whitespace-pre-line w-[515px] text-[14px]">
@@ -173,7 +183,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
         </div>
 
         <div>
-          <h3 className="text-lg md:text-xl font-story font-semibold text-gray-900 mb-4">Image Preview</h3>
+          <h3 className="text-lg md:text-xl font-story font-semibold text-gray-900 mb-4">
+            Image Preview
+          </h3>
           {modalLoading ? (
             <div className="w-[560px] h-[560px] bg-gray-200 rounded-[20px] animate-pulse" />
           ) : (
@@ -184,9 +196,10 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                   alt={getPageTitle()}
                   className="w-[560px] h-[560px] object-cover"
                   onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.style.display = "none"
-                    target.parentElement!.innerHTML = '<div class="w-[560px] h-[560px] flex items-center justify-center text-gray-500 bg-gray-100 rounded-[20px]">Failed to load image</div>'
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                    target.parentElement!.innerHTML =
+                      '<div class="w-[560px] h-[560px] flex items-center justify-center text-gray-500 bg-gray-100 rounded-[20px]">Failed to load image</div>';
                   }}
                 />
               ) : (
@@ -211,13 +224,17 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           </button>
 
           <div className="text-sm text-gray-600">
-            <span className="text-[#8C5AF2] font-semibold">{currentPage + 1}</span>
+            <span className="text-[#8C5AF2] font-semibold">
+              {currentPage + 1}
+            </span>
             <span className="mx-1">/</span>
             <span>{totalPages}</span>
           </div>
 
           <button
-            onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages - 1, currentPage + 1))
+            }
             disabled={currentPage === totalPages - 1}
             className="text-sm font-semibold text-[#8C5AF2] hover:text-violet-700 disabled:text-[#999999] disabled:cursor-not-allowed flex items-center"
           >
@@ -226,7 +243,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
         </div>
       )}
     </Modal>
-  )
-}
+  );
+};
 
-export default StoryPreviewModal
+export default StoryPreviewModal;

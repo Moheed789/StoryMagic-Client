@@ -329,7 +329,7 @@ export default function StoryPageEditor({
                       </span>
                     )}
                   </div>
-                  {editedPage.imagePrompt && (
+                  {/* {editedPage.imagePrompt && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -349,7 +349,7 @@ export default function StoryPageEditor({
                         </>
                       )}
                     </Button>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>
