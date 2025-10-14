@@ -37,14 +37,26 @@ type VerifyForm = z.infer<typeof verifySchema>;
 
 const SignUp: React.FC = () => {
   const [, navigate] = useLocation();
-  const {signUpUser,confirmUserSignUp,resendSignUpUser,signInUser,step,setStep,} = useAuth();
+  const {
+    signUpUser,
+    confirmUserSignUp,
+    resendSignUpUser,
+    signInUser,
+    step,
+    setStep,
+  } = useAuth();
   const [showPass, setShowPass] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
   const RESEND_SECONDS = 60;
   const [secondsLeft, setSecondsLeft] = React.useState(RESEND_SECONDS);
 
-  const {register,handleSubmit,formState: { errors, isValid },getValues,} = useForm<SignUpForm>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    getValues,
+  } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
     mode: "onChange",
     defaultValues: { fullName: "", email: "", password: "", agree: false },

@@ -17,14 +17,12 @@ type Story = {
   createdAt?: number
   updatedAt?: number
   userId?: string
-  // New structure
   downloadOptions?: string[]
   downloadHistory?: Array<{
     downloadOption: string
     status: string
     downloadable: string
   }>
-  // Legacy fields for backward compatibility
   downloadable?: string
   downloadOption?: string
   downloadStatus?: string
@@ -182,7 +180,6 @@ const MyStories: React.FC = () => {
         return
       }
 
-      // Show loading state
       const story = stories.find(s => s.storyId === storyId)
       if (!story) {
         alert("Story not found")
@@ -205,31 +202,24 @@ const MyStories: React.FC = () => {
         throw new Error(`Download failed: ${response.status} ${response.statusText}`)
       }
 
-      // Check if response is actually a PDF
       const contentType = response.headers.get('content-type')
       if (!contentType?.includes('application/pdf')) {
-        // If not PDF, check if it's JSON error response
         const errorData = await response.json()
         throw new Error(errorData.message || "Invalid response format")
       }
 
-      // Get the PDF blob
       const blob = await response.blob()
 
-      // Create download link
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
 
-      // Set filename
       const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
       link.download = filename
 
-      // Trigger download
       document.body.appendChild(link)
       link.click()
 
-      // Cleanup
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
@@ -241,7 +231,6 @@ const MyStories: React.FC = () => {
     }
   }
 
-  // Updated isPurchased function based on new API structure
   const isPurchased = (story: Story, option: 'pdf_only' | 'pdf_and_book') => {
     console.log('Checking story:', story.storyId, 'for option:', option)
     console.log('Story download fields:', {
@@ -249,7 +238,6 @@ const MyStories: React.FC = () => {
       downloadHistory: story.downloadHistory
     })
 
-    // Check new downloadHistory structure
     if (story.downloadHistory && Array.isArray(story.downloadHistory)) {
       const purchasedOption = story.downloadHistory.find(
         item => item.downloadOption === option &&
@@ -263,7 +251,6 @@ const MyStories: React.FC = () => {
       }
     }
 
-    // Fallback to old structure
     const isDownloadable = story.downloadable === "Yes"
     const isPaid = story.downloadStatus === "paid"
     const optionMatches = story.downloadOption === option
@@ -282,7 +269,6 @@ const MyStories: React.FC = () => {
     if (story.downloadOptions && Array.isArray(story.downloadOptions)) {
       return story.downloadOptions.includes(option)
     }
-    // Default to both options available if not specified
     return true
   }
 
@@ -336,7 +322,6 @@ const MyStories: React.FC = () => {
     setStories(prevStories => prevStories.filter(story => story.storyId !== deletedStoryId))
   }
 
-  // Handle download option selection
   const handleDownloadOptionSelect = (storyId: string, option: 'pdf_only' | 'pdf_and_book') => {
     setSelectedDownloadOption(prev => ({
       ...prev,
@@ -344,21 +329,18 @@ const MyStories: React.FC = () => {
     }))
   }
 
-  // Get selected option for a story (default to first available purchased option)
   const getSelectedOption = (story: Story) => {
     const pdfPurchased = isPurchased(story, 'pdf_only')
     const bookPurchased = isPurchased(story, 'pdf_and_book')
 
-    // If user has manually selected an option, use that
     if (selectedDownloadOption[story.storyId]) {
       return selectedDownloadOption[story.storyId]
     }
 
-    // Default to book if purchased, otherwise pdf
     if (bookPurchased) return 'pdf_and_book'
     if (pdfPurchased) return 'pdf_only'
 
-    return 'pdf_only' // fallback
+    return 'pdf_only'
   }
 
   const heading = useMemo(

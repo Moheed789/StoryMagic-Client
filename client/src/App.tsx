@@ -10,6 +10,7 @@ import { PublicOnlyRoute } from "@/components/PublicOnlyRoute";
 import Header from "@/components/Header";
 import { LoadingScreen } from "@/components/ui/loading";
 import RegistrationSuccessModal from "./pages/auth/RegistrationSuccessModal";
+import NotFound from "./pages/not-found";
 
 function Router() {
   const { loading } = useAuth();
@@ -31,6 +32,9 @@ function Router() {
           )}
         </Route>
       ))}
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }

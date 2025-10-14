@@ -9,11 +9,9 @@ import { useLocation } from "wouter";
 export default function CreateNewPassword() {
   const { confirmForgotPassword } = useAuth();
   const [, navigate] = useLocation();
-
   const qs = useMemo(() => new URLSearchParams(window.location.search), []);
   const email = qs.get("email") || "";
   const code = qs.get("code") || "";
-
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPass, setShowPass] = useState(false);

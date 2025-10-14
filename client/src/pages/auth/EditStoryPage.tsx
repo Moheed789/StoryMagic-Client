@@ -30,7 +30,6 @@ export default function EditStoryPage() {
   const storyId = params?.storyId!;
   const [, navigate] = useLocation();
   const { toast } = useToast();
-
   const [loading, setLoading] = useState(true);
   const [story, setStory] = useState<Story | null>(null);
   const [pages, setPages] = useState<StoryPage[]>([]);

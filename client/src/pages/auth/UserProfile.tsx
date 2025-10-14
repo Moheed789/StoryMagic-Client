@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchAuthSession } from "aws-amplify/auth";
