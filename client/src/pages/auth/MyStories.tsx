@@ -293,9 +293,6 @@ const MyStories: React.FC = () => {
   }
 
   const isOptionAvailable = (story: Story, option: 'pdf_only' | 'pdf_and_book') => {
-    if (story.downloadOptions && Array.isArray(story.downloadOptions)) {
-      return story.downloadOptions.includes(option)
-    }
     return true
   }
 
@@ -373,7 +370,7 @@ const MyStories: React.FC = () => {
   const heading = useMemo(
     () => (
       <div className="text-center mb-8 md:mb-10 mt-[105px]">
-        <h1 className="inline-flex items-baseline gap-2 text-3xl md:text-[40px] font-black tracking-tight">
+        <h1 className=" items-baseline gap-2 text-3xl md:text-[40px] font-black tracking-tight">
           <span className="text-[#24212C] font-display text-[64px] font-[400]">Your Magical</span>
           <span className="text-[#8C5AF2] font-display text-[64px] font-[400]">Stories</span>
         </h1>
@@ -387,9 +384,9 @@ const MyStories: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="max-w-[1579px] mx-auto px-4 py-10">
         {heading}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-wrap gap-[44px] justify-center md:justify-start">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
               <div className="bg-slate-200 aspect-[16/9]" />
@@ -408,7 +405,7 @@ const MyStories: React.FC = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="max-w-[1579px] mx-auto px-4 py-10">
         {heading}
         <p className="text-red-500 text-center">{error}</p>
       </div>
@@ -430,24 +427,23 @@ const MyStories: React.FC = () => {
   const totalPages = (frontCover ? 1 : 0) + storyPages.length + (backCover ? 1 : 0)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
+    <div className="w-full max-w-[1619px] mx-auto px-4 py-10">
       {heading}
 
       {stories.length === 0 ? (
         <p className="text-center text-slate-500">No stories found.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  gap-6">
+        <div className="flex flex-wrap gap-[44px] justify-center xl:justify-start">
           {stories.map((story) => {
             const pdfPurchased = isPurchased(story, 'pdf_only')
             const bookPurchased = isPurchased(story, 'pdf_and_book')
-            const pdfAvailable = isOptionAvailable(story, 'pdf_only')
-            const bookAvailable = isOptionAvailable(story, 'pdf_and_book')
+
             const pdfLoading = isPurchaseLoading(story.storyId, 'pdf_only')
             const bookLoading = isPurchaseLoading(story.storyId, 'pdf_and_book')
             const selectedOption = getSelectedOption(story)
 
             return (
-              <div key={story.storyId} className="rounded-[20px] border  border-[#CCD8D3] bg-[#F4F3F7] w-[479px] shadow-sm overflow-hidden">
+              <div key={story.storyId} className="rounded-[20px] border  border-[#CCD8D3] bg-[#F4F3F7] w-[497px] shadow-sm overflow-hidden">
                 <div className="relative aspect-[16/9] w-full">
                   <img
                     src={story.coverImageUrl || "/placeholder-cover.jpg"}
@@ -468,97 +464,90 @@ const MyStories: React.FC = () => {
                     {story.title}
                   </h3>
 
-                  {(pdfPurchased || bookPurchased) && (
                     <p className="text-[14px] text-[#8C5AF2] italic mb-4 font-medium">
                       Select Download Option
                     </p>
-                  )}
 
                   <div className="space-y-3 mb-6">
-                    {pdfAvailable && (
-                      <div
-                        onClick={() => pdfPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_only')}
-                        className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${pdfPurchased && selectedOption === 'pdf_only'
-                            ? 'border-[#8C5AF2] bg-[#F8F6FF]'
-                            : pdfPurchased
-                              ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
-                              : 'border-[#E5E5E5] bg-white cursor-default'
-                          }`}>
-                        <div className="flex items-center space-x-3">
-
-                          <div className="flex-1">
-                            <span className="text-[14px] text-[#333333] font-medium">
-                              Downloadable PDF Only -
-                            </span>
-                            <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">
-                              $2.99
-                            </span>
-                          </div>
-                        </div>
-
-                        <div>
-                          {pdfPurchased ? (
-                             <span className="text-[#28A745] flex items-center gap-[6px] text-[14px] font-semibold">
-                              Purchased <Check size={14} />
-                            </span>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handlePurchase(story.storyId, 'pdf_only')
-                              }}
-                              disabled={pdfLoading}
-                              className="text-[#8C5AF2] underline text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {pdfLoading ? "Processing..." : "Buy Now"}
-                            </button>
-                          )}
+                    <div
+                      onClick={() => pdfPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_only')}
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
+                        pdfPurchased && selectedOption === 'pdf_only'
+                          ? 'border-[#8C5AF2] bg-[#F8F6FF]'
+                          : pdfPurchased
+                          ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
+                          : 'border-[#E5E5E5] bg-white cursor-default'
+                      }`}>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-1">
+                          <span className="text-[14px] text-[#333333] font-medium">
+                            Downloadable PDF Only -
+                          </span>
+                          <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">
+                            $2.99
+                          </span>
                         </div>
                       </div>
-                    )}
 
-                    {bookAvailable && (
-                      <div
-                        onClick={() => bookPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_and_book')}
-                        className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${bookPurchased && selectedOption === 'pdf_and_book'
-                            ? 'border-[#8C5AF2] bg-[#F8F6FF]'
-                            : bookPurchased
-                              ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
-                              : 'border-[#E5E5E5] bg-white cursor-default'
-                          }`}>
-                        <div className="flex items-center space-x-3">
+                      <div>
+                        {pdfPurchased ? (
+                          <span className="text-[#28A745] flex items-center gap-[6px] text-[14px] font-semibold">
+                            Purchased <Check size={14} />
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handlePurchase(story.storyId, 'pdf_only')
+                            }}
+                            disabled={pdfLoading}
+                            className="text-[#8C5AF2] underline text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {pdfLoading ? "Processing..." : "Buy Now"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-
-                          <div className="flex-1 w-full max-w-[249px]">
-                            <span className="text-[14px] text-[#333333] font-medium">
-                              Downloadable PDF + Professionally Printed Book -
-                            </span>
-                            <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">
-                              Higher Price (TBD)
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="">
-                          {bookPurchased ? (
-                            <span className="text-[#28A745] flex items-center gap-[6px] text-[14px] font-semibold">
-                              Purchased <Check size={14} />
-                            </span>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handlePurchase(story.storyId, 'pdf_and_book')
-                              }}
-                              disabled={bookLoading}
-                              className="text-[#8C5AF2] underline text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {bookLoading ? "Processing..." : "Buy Now"}
-                            </button>
-                          )}
+                    <div
+                      onClick={() => bookPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_and_book')}
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
+                        bookPurchased && selectedOption === 'pdf_and_book'
+                          ? 'border-[#8C5AF2] bg-[#F8F6FF]'
+                          : bookPurchased
+                          ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
+                          : 'border-[#E5E5E5] bg-white cursor-default'
+                      }`}>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-1 w-full max-w-[249px]">
+                          <span className="text-[14px] text-[#333333] font-medium">
+                            Downloadable PDF + Professionally Printed Book -
+                          </span>
+                          <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">
+                            Higher Price (TBD)
+                          </span>
                         </div>
                       </div>
-                    )}
+
+                      <div className="">
+                        {bookPurchased ? (
+                          <span className="text-[#28A745] flex items-center gap-[6px] text-[14px] font-semibold">
+                            Purchased <Check size={14} />
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handlePurchase(story.storyId, 'pdf_and_book')
+                            }}
+                            disabled={bookLoading}
+                            className="text-[#8C5AF2] underline text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {bookLoading ? "Processing..." : "Buy Now"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {!pdfPurchased && !bookPurchased && (
