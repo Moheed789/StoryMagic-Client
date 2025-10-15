@@ -82,7 +82,7 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   className="gap-2 bg-[#8C5AF2] text-white hover:bg-[#7B4CEB]"
-                  onClick={() => navigate("/")}
+                  onClick={() => goHomeBottom()}
                 >
                   <SparklesIcon className="h-4 w-4" />
                   Create Story
