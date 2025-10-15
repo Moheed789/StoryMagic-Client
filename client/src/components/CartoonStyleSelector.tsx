@@ -1,52 +1,57 @@
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from '@/components/ui/carousel';
-import { cn } from '@/lib/utils';
-import { Palette, Sparkles, Box, Heart } from 'lucide-react';
-import animeExample from '@assets/anime image_1758732709903.png';
-import chibiExample from '@assets/Chibi Image_1758733051980.png';
-import threeDExample from '@assets/3d animation image_1758733193464.png';
-import traditionalExample from '@assets/Traditional Cartoon_1758733335419.png';
+} from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
+import { Palette, Sparkles, Box, Heart } from "lucide-react";
+import animeExample from "@assets/anime image_1758732709903.png";
+import chibiExample from "@assets/Chibi Image_1758733051980.png";
+import threeDExample from "@assets/3d animation image_1758733193464.png";
+import traditionalExample from "@assets/Traditional Cartoon_1758733335419.png";
 
-export type CartoonStyle = 'traditional' | 'anime' | '3d' | 'chibi';
+export type CartoonStyle = "traditional" | "anime" | "3d" | "chibi";
 
 interface CartoonStyleOption {
   id: CartoonStyle;
   name: string;
   description: string;
   previewImage?: string; // Will be populated when user provides images
+  indexNo?: number; // Optional index for ordering or reference
 }
 
 const cartoonStyles: CartoonStyleOption[] = [
   {
-    id: 'traditional',
-    name: 'Traditional Cartoon',
-    description: 'Classic cartoon style with bold outlines and vibrant colors',
+    id: "traditional",
+    name: "Traditional Cartoon",
+    description: "Classic cartoon style with bold outlines and vibrant colors",
     previewImage: traditionalExample,
+    indexNo: 0,
   },
   {
-    id: 'anime',
-    name: 'Anime',
-    description: 'Japanese animation style with expressive characters',
+    id: "anime",
+    name: "Anime",
+    description: "Japanese animation style with expressive characters",
     previewImage: animeExample,
+    indexNo: 1,
   },
   {
-    id: '3d',
-    name: '3D Animation',
-    description: 'Modern 3D rendered style with depth and dimension',
+    id: "3d",
+    name: "3D Animation",
+    description: "Modern 3D rendered style with depth and dimension",
     previewImage: threeDExample,
+    indexNo: 2,
   },
   {
-    id: 'chibi',
-    name: 'Chibi',
-    description: 'Cute, small character style with oversized heads',
+    id: "chibi",
+    name: "Chibi",
+    description: "Cute, small character style with oversized heads",
     previewImage: chibiExample,
+    indexNo: 3,
   },
 ];
 
@@ -55,7 +60,10 @@ interface CartoonStyleSelectorProps {
   onStyleChange: (style: CartoonStyle) => void;
 }
 
-export function CartoonStyleSelector({ selectedStyle, onStyleChange }: CartoonStyleSelectorProps) {
+export function CartoonStyleSelector({
+  selectedStyle,
+  onStyleChange,
+}: CartoonStyleSelectorProps) {
   return (
     <div className="container mx-auto px-6">
       <div className="max-w-4xl mx-auto">
@@ -78,7 +86,10 @@ export function CartoonStyleSelector({ selectedStyle, onStyleChange }: CartoonSt
           >
             <CarouselContent className="-ml-2 md:-ml-4">
               {cartoonStyles.map((style) => (
-                <CarouselItem key={style.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                <CarouselItem
+                  key={style.id}
+                  className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
+                >
                   <div className="p-1">
                     <Card
                       className={cn(
@@ -101,17 +112,25 @@ export function CartoonStyleSelector({ selectedStyle, onStyleChange }: CartoonSt
                         ) : (
                           <div className="text-center p-4">
                             <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
-                              {style.id === 'traditional' && <Palette className="w-8 h-8 text-primary" />}
-                              {style.id === 'anime' && <Sparkles className="w-8 h-8 text-primary" />}
-                              {style.id === '3d' && <Box className="w-8 h-8 text-primary" />}
-                              {style.id === 'chibi' && <Heart className="w-8 h-8 text-primary" />}
+                              {style.id === "traditional" && (
+                                <Palette className="w-8 h-8 text-primary" />
+                              )}
+                              {style.id === "anime" && (
+                                <Sparkles className="w-8 h-8 text-primary" />
+                              )}
+                              {style.id === "3d" && (
+                                <Box className="w-8 h-8 text-primary" />
+                              )}
+                              {style.id === "chibi" && (
+                                <Heart className="w-8 h-8 text-primary" />
+                              )}
                             </div>
                             <p className="text-sm text-muted-foreground">
                               Preview coming soon
                             </p>
                           </div>
                         )}
-                        
+
                         {selectedStyle === style.id && (
                           <div className="absolute top-3 right-3">
                             <Badge variant="default" className="text-xs">
@@ -120,7 +139,7 @@ export function CartoonStyleSelector({ selectedStyle, onStyleChange }: CartoonSt
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="p-4">
                         <h3 className="font-semibold text-lg mb-2 font-display">
                           {style.name}
@@ -134,8 +153,14 @@ export function CartoonStyleSelector({ selectedStyle, onStyleChange }: CartoonSt
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="hidden md:flex" data-testid="button-carousel-prev" />
-            <CarouselNext className="hidden md:flex" data-testid="button-carousel-next" />
+            <CarouselPrevious
+              className="hidden md:flex"
+              data-testid="button-carousel-prev"
+            />
+            <CarouselNext
+              className="hidden md:flex"
+              data-testid="button-carousel-next"
+            />
           </Carousel>
         </div>
 
@@ -159,7 +184,10 @@ export function CartoonStyleSelector({ selectedStyle, onStyleChange }: CartoonSt
 
         <div className="text-center mt-8">
           <p className="text-sm text-muted-foreground">
-            Selected: <span className="font-medium text-foreground">{cartoonStyles.find(s => s.id === selectedStyle)?.name}</span>
+            Selected:{" "}
+            <span className="font-medium text-foreground">
+              {cartoonStyles.find((s) => s.id === selectedStyle)?.name}
+            </span>
           </p>
         </div>
       </div>

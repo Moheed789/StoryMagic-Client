@@ -13,7 +13,6 @@ export default function StoryCreator() {
   const [, navigate] = useLocation();
   const [selectedCartoonStyle, setSelectedCartoonStyle] =
     useState<CartoonStyle>("traditional");
-
   const handleStoryGenerated = (storyData: any) => {
     setCurrentStory(storyData.story);
     setCurrentPages(storyData.pages);
@@ -27,7 +26,7 @@ export default function StoryCreator() {
         onStyleChange={setSelectedCartoonStyle}
       />
       <div className="mx-10">
-        <ChatInterface onStoryGenerated={handleStoryGenerated} />
+        <ChatInterface selectedCartoonStyle={selectedCartoonStyle} onStoryGenerated={handleStoryGenerated} />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { RefreshCwIcon } from "lucide-react";
@@ -50,8 +50,11 @@ const GeneratedStory: React.FC = () => {
   const { characterDescription } = useAuth();
   const { currentStory, setCurrentPages, currentPages, setCurrentStory } =
     useAuth() as any;
+
   const [loading, setLoading] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -74,6 +77,70 @@ const GeneratedStory: React.FC = () => {
       }
     })();
   }, [storyId, setCurrentPages, setCurrentStory]);
+
+  const pollRef = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, []);
+
+  const startStatusPolling = async () => {
+    let attempts = 0;
+    const maxAttempts = 40;
+
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+
+    const id = window.setInterval(async () => {
+      try {
+        if (!storyId) return;
+        const authHeader = await getAuthHeader();
+        const res = await fetch(
+          `${API_BASE}/stories/${storyId}/images-status`,
+          {
+            headers: { "Content-Type": "application/json", ...authHeader },
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentPages(data.pages);
+
+          const allDone = data.pages.every((p: any) => p.imageUrl);
+          if (allDone) {
+            if (pollRef.current) {
+              clearInterval(pollRef.current);
+              pollRef.current = null;
+            }
+            setIsGenerating(false);
+            toast({
+              title: "All Images Ready!",
+              description:
+                "Your story images have been successfully generated.",
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Status polling error:", err);
+      }
+
+      if (++attempts > maxAttempts) {
+        if (pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
+        setIsGenerating(false);
+      }
+    }, 5000);
+
+    pollRef.current = id;
+  };
 
   const batchGenerateImagesMutation = useMutation({
     mutationFn: async () => {
@@ -100,8 +167,9 @@ const GeneratedStory: React.FC = () => {
     onSuccess: () => {
       toast({
         title: "All Images Generating...",
-        description: "We’ll show them as soon as they’re ready.",
+        description: "We'll show them as soon as they're ready.",
       });
+      setIsGenerating(true);
       startStatusPolling();
     },
     onError: (error) => {
@@ -111,48 +179,18 @@ const GeneratedStory: React.FC = () => {
         description: "Failed to generate all images. Please try again later.",
         variant: "destructive",
       });
+      setIsGenerating(false);
     },
   });
 
-  const startStatusPolling = async () => {
-    let attempts = 0;
-    const maxAttempts = 40;
-    const interval = setInterval(async () => {
-      try {
-        if (!storyId) return;
-        const authHeader = await getAuthHeader();
-        const res = await fetch(
-          `${API_BASE}/stories/${storyId}/images-status`,
-          {
-            headers: { "Content-Type": "application/json", ...authHeader },
-          }
-        );
-
-        if (res.ok) {
-          const data = await res.json();
-          setCurrentPages(data.pages);
-
-          const allDone = data.pages.every((p: any) => p.imageUrl);
-          if (allDone) {
-            clearInterval(interval);
-            toast({
-              title: "All Images Ready!",
-              description:
-                "Your story images have been successfully generated.",
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Status polling error:", err);
-      }
-
-      if (++attempts > maxAttempts) clearInterval(interval);
-    }, 5000);
-  };
-
   const handleBatchGenerateImages = () => {
+    if (isGenerating || batchGenerateImagesMutation.isPending) return;
     batchGenerateImagesMutation.mutate();
   };
+
+  const allImagesGenerated =
+    (currentPages || []).length > 0 &&
+    (currentPages || []).every((p: any) => p.imageUrl);
 
   if (!storyId)
     return (
@@ -180,6 +218,12 @@ const GeneratedStory: React.FC = () => {
       </div>
     );
 
+  const isDisabled =
+    isGenerating ||
+    batchGenerateImagesMutation.isPending ||
+    !storyId ||
+    allImagesGenerated;
+
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -195,29 +239,33 @@ const GeneratedStory: React.FC = () => {
         </div>
 
         {(currentPages || []).map((page: any) => (
-          <StoryPageEditor key={page.id} page={page} />
+          <StoryPageEditor
+            key={page.id}
+            page={page}
+            isBatchGenerating={isGenerating && !page.imageUrl}
+          />
         ))}
       </div>
 
-      {/* <div className="mt-8 flex justify-end w-full max-w-[89%]">
-        <Button size="lg" onClick={() => navigate("/")}>
-          Done
-        </Button>
-      </div> */}
-
       <div className="bg-card border rounded-lg p-6 max-w-3xl mx-auto mb-8 text-center mt-8">
-        <h2 className="mb-4 w-full max-w-[400px] mx-auto text-[#8DA99E] font-[600] font-story">Are you happy with the story and ready to generate the images? Let's make magic!</h2>
+        <h2 className="mb-4 w-full max-w-[400px] mx-auto text-[#8DA99E] font-[600] font-story">
+          Are you happy with the story and ready to generate the images? Let's
+          make magic!
+        </h2>
+
         <Button
           data-testid="button-batch-generate-images"
           onClick={handleBatchGenerateImages}
-          disabled={batchGenerateImagesMutation.isPending || !storyId}
+          disabled={isDisabled}
           className="gap-2"
         >
-          {batchGenerateImagesMutation.isPending ? (
+          {batchGenerateImagesMutation.isPending || isGenerating ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent" />
               Generating All Images...
             </>
+          ) : allImagesGenerated ? (
+            <>Images Generated</>
           ) : (
             <>
               <RefreshCwIcon className="h-4 w-4" />
@@ -227,6 +275,11 @@ const GeneratedStory: React.FC = () => {
         </Button>
       </div>
 
+      <div className="w-full max-w-3xl mx-auto text-center">
+        <Button className="text-sm text-white" onClick={() => navigate("/")}>
+          Done
+        </Button>
+      </div>
     </div>
   );
 };

@@ -30,6 +30,7 @@ interface StoryPageEditorProps {
   totalPages?: number;
   hideStoryText?: boolean;
   onSaved?: (updated: StoryPage) => void;
+  isBatchGenerating?: boolean;
 }
 
 const API_BASE = "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev";
@@ -40,6 +41,7 @@ export default function StoryPageEditor({
   totalPages,
   hideStoryText = false,
   onSaved,
+  isBatchGenerating = false,
 }: StoryPageEditorProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedPage, setEditedPage] = useState<StoryPage>(page);
@@ -49,8 +51,9 @@ export default function StoryPageEditor({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (page.imageUrl) setImage(page.imageUrl);
-  }, [page.imageUrl]);
+    setImage(page.imageUrl ?? null);
+    setEditedPage((prev) => ({ ...prev, ...page }));
+  }, [page.imageUrl, page.text, page.imagePrompt]);
 
   const { selectedPageCount } = useAuth();
 
@@ -221,6 +224,8 @@ export default function StoryPageEditor({
 
   const title = getPageTitle();
 
+  const shouldShowLoader = !img && (isGenerating || isBatchGenerating);
+
   return (
     <>
       <Card className="p-6">
@@ -263,7 +268,6 @@ export default function StoryPageEditor({
 
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-4">
-            {/* Hide story text on covers */}
             {!hideStoryText &&
               page.type !== "COVER_FRONT" &&
               page.type !== "COVER_BACK" && (
@@ -329,33 +333,11 @@ export default function StoryPageEditor({
                       </span>
                     )}
                   </div>
-                  {/* {editedPage.imagePrompt && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRegenerateImage(storyId)}
-                      className="gap-1"
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <RefreshCwIcon className="h-3 w-3 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCwIcon className="h-3 w-3" />
-                          {img ? "Regenerate Image" : "Generate Image"}
-                        </>
-                      )}
-                    </Button>
-                  )} */}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Image Preview */}
           <div className="space-y-4">
             <Label className="text-sm font-semibold">Image Preview</Label>
             <div className="aspect-[4/3] bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
@@ -365,7 +347,7 @@ export default function StoryPageEditor({
                   alt={`Illustration — ${title}`}
                   className="w-full h-full object-cover rounded-lg"
                 />
-              ) : isGenerating ? (
+              ) : shouldShowLoader ? (
                 <div className="text-center text-muted-foreground">
                   <RefreshCwIcon className="h-8 w-8 mx-auto mb-2 animate-spin" />
                   <p className="text-sm">Generating image...</p>
