@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     "idea"
   );
   const [storyId, setStoryId] = useState();
-  const [selectedPageCount, setSelectedPageCount] = useState<number>(1);
+  const [selectedPageCount, setSelectedPageCount] = useState<number>();
   const [storyTitle, setStoryTitle] = useState();
   const [authorName, setAuthorName] = useState<string>(
     (user as any)?.attributes?.name ||
