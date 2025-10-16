@@ -84,83 +84,86 @@ export function CartoonStyleSelector({
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {cartoonStyles.map((style) => (
-                <CarouselItem
-                  key={style.id}
-                  className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
-                >
-                  <div className="p-1">
-                    <Card
-                      className={cn(
-                        "relative cursor-pointer transition-all duration-300 hover-elevate",
-                        selectedStyle === style.id
-                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                          : "hover:shadow-lg"
-                      )}
-                      onClick={() => onStyleChange(style.id)}
-                      data-testid={`style-card-${style.id}`}
-                    >
-                      <div className="aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 rounded-t-lg flex items-center justify-center relative overflow-hidden">
-                        {/* Placeholder for style preview image */}
-                        {style.previewImage ? (
-                          <img
-                            src={style.previewImage}
-                            alt={`${style.name} example`}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="text-center p-4">
-                            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
-                              {style.id === "traditional" && (
-                                <Palette className="w-8 h-8 text-primary" />
-                              )}
-                              {style.id === "anime" && (
-                                <Sparkles className="w-8 h-8 text-primary" />
-                              )}
-                              {style.id === "3d" && (
-                                <Box className="w-8 h-8 text-primary" />
-                              )}
-                              {style.id === "chibi" && (
-                                <Heart className="w-8 h-8 text-primary" />
-                              )}
+            <div className="flex items-center gap-1">
+              <CarouselPrevious
+                className="static translate-y-0 flex-shrink-0"
+                data-testid="button-carousel-prev"
+              />
+
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {cartoonStyles.map((style) => (
+                  <CarouselItem
+                    key={style.id}
+                    className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
+                  >
+                    <div className="p-1">
+                      <Card
+                        className={cn(
+                          "relative cursor-pointer transition-all duration-300 hover-elevate",
+                          selectedStyle === style.id
+                            ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                            : "hover:shadow-lg"
+                        )}
+                        onClick={() => onStyleChange(style.id)}
+                        data-testid={`style-card-${style.id}`}
+                      >
+                        <div className="aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 rounded-t-lg flex items-center justify-center relative overflow-hidden">
+                          {style.previewImage ? (
+                            <img
+                              src={style.previewImage}
+                              alt={`${style.name} example`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-center p-4">
+                              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
+                                {style.id === "traditional" && (
+                                  <Palette className="w-8 h-8 text-primary" />
+                                )}
+                                {style.id === "anime" && (
+                                  <Sparkles className="w-8 h-8 text-primary" />
+                                )}
+                                {style.id === "3d" && (
+                                  <Box className="w-8 h-8 text-primary" />
+                                )}
+                                {style.id === "chibi" && (
+                                  <Heart className="w-8 h-8 text-primary" />
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Preview coming soon
+                              </p>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              Preview coming soon
-                            </p>
-                          </div>
-                        )}
+                          )}
 
-                        {selectedStyle === style.id && (
-                          <div className="absolute top-3 right-3">
-                            <Badge variant="default" className="text-xs">
-                              Selected
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
+                          {selectedStyle === style.id && (
+                            <div className="absolute top-3 right-3">
+                              <Badge variant="default" className="text-xs">
+                                Selected
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
 
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2 font-display">
-                          {style.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground font-story">
-                          {style.description}
-                        </p>
-                      </div>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious
-              className="hidden md:flex"
-              data-testid="button-carousel-prev"
-            />
-            <CarouselNext
-              className="hidden md:flex"
-              data-testid="button-carousel-next"
-            />
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg mb-2 font-display">
+                            {style.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground font-story">
+                            {style.description}
+                          </p>
+                        </div>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              <CarouselNext
+                className="static translate-y-0 flex-shrink-0"
+                data-testid="button-carousel-next"
+              />
+            </div>
           </Carousel>
         </div>
 

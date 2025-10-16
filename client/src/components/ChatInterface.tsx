@@ -52,7 +52,6 @@ interface StoryWithPages {
   }>;
 }
 
-
 type CartoonStyle = "traditional" | "anime" | "3d" | "chibi";
 
 const safeTrim = (v?: string | null) => (typeof v === "string" ? v.trim() : "");
@@ -60,7 +59,6 @@ interface ChatInterfaceProps {
   onStoryGenerated?: (storyData: StoryWithPages) => void;
   selectedCartoonStyle?: CartoonStyle;
 }
-
 
 const API_URL =
   "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/generate";
@@ -253,9 +251,8 @@ export default function ChatInterface({
     onError: (error) => {
       const errorMessage: Message = {
         id: Date.now().toString(),
-        content: `I'm sorry, there was an error creating your story: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }. Please try again with a different story idea.`,
+        content:
+          "you've reached the daily limit of free stories, please generate more stories tomorrow.",
         isUser: false,
         timestamp: new Date(),
       };
