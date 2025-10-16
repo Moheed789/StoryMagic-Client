@@ -6,18 +6,14 @@ import { fetchAuthSession } from "aws-amplify/auth"
 import DeleteStoryModal from "../../components/DeleteStoryModal"
 import StoryPreviewModal from "../../components/StoryPreviewModal"
 import { Check, Trash } from "lucide-react"
+import { useToast } from "../../hooks/use-toast"
 
 type Story = {
   storyId: string
   title: string
-  description?: string | null
   status?: string
   totalPages?: number
   coverImageUrl?: string | null
-  createdAt?: number
-  updatedAt?: number
-  userId?: string
-  downloadOptions?: string[]
   downloadHistory?: Array<{
     downloadOption: string
     status: string
@@ -26,8 +22,6 @@ type Story = {
   downloadable?: string
   downloadOption?: string
   downloadStatus?: string
-  pdfPurchased?: boolean
-  bookPurchased?: boolean
 }
 
 type StoryPage = {
@@ -36,12 +30,11 @@ type StoryPage = {
   content?: string
   imageUrl?: string
   imagePrompt?: string
-  createdAt?: number
   pageId?: string
-  pk?: string
-  sk?: string
   storyId?: string
   type?: string
+  title?: string
+  author?: string
 }
 
 type StoryDetails = {
@@ -55,22 +48,22 @@ type StoryDetails = {
   updatedAt: number
   userId: string
   pages?: StoryPage[]
+  author?: string
 }
 
 const MyStories: React.FC = () => {
+  const { toast } = useToast()
+
   const [stories, setStories] = useState<Story[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isAuthed, setIsAuthed] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalStory, setModalStory] = useState<StoryDetails | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [storyToDelete, setStoryToDelete] = useState<{ id: string; title: string } | null>(null)
-
   const [purchaseLoading, setPurchaseLoading] = useState<{ [storyId: string]: { pdf?: boolean; book?: boolean } }>({})
-
   const [selectedDownloadOption, setSelectedDownloadOption] = useState<{ [storyId: string]: 'pdf_only' | 'pdf_and_book' }>({})
 
   useEffect(() => {
@@ -78,7 +71,6 @@ const MyStories: React.FC = () => {
       try {
         const session: any = await fetchAuthSession()
         const token = session?.tokens?.idToken?.toString()
-        setIsAuthed(Boolean(token))
 
         const res = await fetch("https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories", {
           headers: {
@@ -121,7 +113,11 @@ const MyStories: React.FC = () => {
       const token = session?.tokens?.idToken?.toString()
 
       if (!token) {
-        alert("Please login first")
+        toast({
+          title: "Authentication Error",
+          description: "Please login first",
+          variant: "destructive",
+        })
         return
       }
 
@@ -154,10 +150,18 @@ const MyStories: React.FC = () => {
 
         window.location.href = checkoutUrl
       } else {
-        alert("Checkout URL not found")
+        toast({
+          title: "Checkout Error",
+          description: "Checkout URL not found",
+          variant: "destructive",
+        })
       }
     } catch (error: any) {
-      alert(`Purchase failed: ${error.message}`)
+      toast({
+        title: "Purchase Failed",
+        description: `Purchase failed: ${error.message}`,
+        variant: "destructive",
+      })
     } finally {
       setPurchaseLoading(prev => ({
         ...prev,
@@ -175,18 +179,23 @@ const MyStories: React.FC = () => {
       const token = session?.tokens?.idToken?.toString()
 
       if (!token) {
-        alert("Please login first")
+        toast({
+          title: "Authentication Error",
+          description: "Please login first",
+          variant: "destructive",
+        })
         return
       }
 
-      // Show loading state
       const story = stories.find(s => s.storyId === storyId)
       if (!story) {
-        alert("Story not found")
+        toast({
+          title: "Error",
+          description: "Story not found",
+          variant: "destructive",
+        })
         return
       }
-
-      console.log('Starting download for:', storyId, 'option:', downloadOption)
 
       const response = await fetch(
         `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}/export-pdf`,
@@ -201,16 +210,13 @@ const MyStories: React.FC = () => {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Download API error response:', errorText)
         throw new Error(`Download failed: ${response.status} ${response.statusText}`)
       }
 
       const contentType = response.headers.get('content-type')
-      console.log('Response content-type:', contentType)
 
       if (contentType?.includes('application/json')) {
         const jsonData = await response.json()
-        console.log('JSON response:', jsonData)
         
         if (jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl) {
           const downloadUrl = jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl
@@ -223,10 +229,14 @@ const MyStories: React.FC = () => {
           link.click()
           document.body.removeChild(link)
           
-          console.log(`Successfully initiated download from URL: ${downloadUrl}`)
+          toast({
+            title: "Download Started",
+            description: "Your story download has begun",
+            variant: "default",
+          })
           return
         }
-                throw new Error(jsonData.message || "No download URL provided")
+        throw new Error(jsonData.message || "No download URL provided")
       }
 
       if (contentType?.includes('application/pdf')) {
@@ -245,55 +255,40 @@ const MyStories: React.FC = () => {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
         
-        console.log(`Successfully downloaded PDF blob for: ${storyId}`)
+        toast({
+          title: "Download Complete",
+          description: "Your story has been downloaded successfully",
+          variant: "default",
+        })
         return
       }
 
-      const responseText = await response.text()
-      console.log('Unknown response format:', responseText)
       throw new Error("Unsupported response format")
 
     } catch (error: any) {
-      console.error('Download error:', error)
-      alert(`Download failed: ${error.message}`)
+      toast({
+        title: "Download Failed",
+        description: `Download failed: ${error.message}`,
+        variant: "destructive",
+      })
     }
   }
 
   const isPurchased = (story: Story, option: 'pdf_only' | 'pdf_and_book') => {
-    console.log('Checking story:', story.storyId, 'for option:', option)
-    console.log('Story download fields:', {
-      downloadOptions: story.downloadOptions,
-      downloadHistory: story.downloadHistory
-    })
-
     if (story.downloadHistory && Array.isArray(story.downloadHistory)) {
       const purchasedOption = story.downloadHistory.find(
         item => item.downloadOption === option &&
           item.status === "paid" &&
           item.downloadable === "Yes"
       )
-
-      if (purchasedOption) {
-        console.log('PURCHASED via downloadHistory!')
-        return true
-      }
+      if (purchasedOption) return true
     }
 
     const isDownloadable = story.downloadable === "Yes"
     const isPaid = story.downloadStatus === "paid"
     const optionMatches = story.downloadOption === option
 
-    if (isDownloadable && isPaid && optionMatches) {
-      console.log('PURCHASED via legacy API!')
-      return true
-    }
-
-    console.log('NOT PURCHASED')
-    return false
-  }
-
-  const isOptionAvailable = (story: Story, option: 'pdf_only' | 'pdf_and_book') => {
-    return true
+    return isDownloadable && isPaid && optionMatches
   }
 
   const isPurchaseLoading = (storyId: string, option: 'pdf_only' | 'pdf_and_book') => {
@@ -367,12 +362,30 @@ const MyStories: React.FC = () => {
     return 'pdf_only'
   }
 
+  const handleStoryUpdate = (updatedStory: StoryDetails) => {
+    setStories(prevStories => 
+      prevStories.map(story => 
+        story.storyId === updatedStory.storyId 
+          ? { 
+              ...story, 
+              title: updatedStory.title,
+              coverImageUrl: updatedStory.coverImageUrl 
+            }
+          : story
+      )
+    )
+    
+    if (modalStory?.storyId === updatedStory.storyId) {
+      setModalStory(updatedStory)
+    }
+  }
+
   const heading = useMemo(
     () => (
       <div className="text-center mb-8 md:mb-10 mt-[105px]">
-        <h1 className=" items-baseline gap-2 text-3xl md:text-[40px] font-black tracking-tight">
-          <span className="text-[#24212C] font-display text-[64px] font-[400]">Your Magical</span>
-          <span className="text-[#8C5AF2] font-display text-[64px] font-[400]">Stories</span>
+        <h1 className="items-baseline text-[#24212C] font-display text-[40px] font-normal gap-2 md:text-[40px] tracking-tight">
+          Your Magical&nbsp;
+          <span className="text-[#8C5AF2]">Stories</span>
         </h1>
         <p className="text-[#6F677E] font-[500] text-[24px] font-story mt-[16px]">
           Browse, download, or relive the stories you've created with AI.
@@ -412,20 +425,6 @@ const MyStories: React.FC = () => {
     )
   }
 
-  const pages = modalStory?.pages || []
-  const sortedPages = pages.sort((a, b) => {
-    if (a.type === 'COVER_FRONT') return -1
-    if (b.type === 'COVER_FRONT') return 1
-    if (a.type === 'COVER_BACK') return 1
-    if (b.type === 'COVER_BACK') return -1
-    return (a.pageNumber || 0) - (b.pageNumber || 0)
-  })
-
-  const frontCover = sortedPages.find(p => p.type === 'COVER_FRONT')
-  const backCover = sortedPages.find(p => p.type === 'COVER_BACK')
-  const storyPages = sortedPages.filter(p => p.type === 'PAGE')
-  const totalPages = (frontCover ? 1 : 0) + storyPages.length + (backCover ? 1 : 0)
-
   return (
     <div className="w-full max-w-[1619px] mx-auto px-4 py-10">
       {heading}
@@ -437,13 +436,12 @@ const MyStories: React.FC = () => {
           {stories.map((story) => {
             const pdfPurchased = isPurchased(story, 'pdf_only')
             const bookPurchased = isPurchased(story, 'pdf_and_book')
-
             const pdfLoading = isPurchaseLoading(story.storyId, 'pdf_only')
             const bookLoading = isPurchaseLoading(story.storyId, 'pdf_and_book')
             const selectedOption = getSelectedOption(story)
 
             return (
-              <div key={story.storyId} className="rounded-[20px] border  border-[#CCD8D3] bg-[#F4F3F7] w-[497px] shadow-sm overflow-hidden">
+              <div key={story.storyId} className="rounded-[20px] border border-[#CCD8D3] bg-[#F4F3F7] w-[497px] shadow-sm overflow-hidden">
                 <div className="relative aspect-[16/9] w-full">
                   <img
                     src={story.coverImageUrl || "/placeholder-cover.jpg"}
@@ -464,9 +462,9 @@ const MyStories: React.FC = () => {
                     {story.title}
                   </h3>
 
-                    <p className="text-[14px] text-[#8C5AF2] italic mb-4 font-medium">
-                      Select Download Option
-                    </p>
+                  <p className="text-[14px] text-[#8C5AF2] italic mb-4 font-medium">
+                    Select Download Option
+                  </p>
 
                   <div className="space-y-3 mb-6">
                     <div
@@ -529,7 +527,7 @@ const MyStories: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="">
+                      <div>
                         {bookPurchased ? (
                           <span className="text-[#28A745] flex items-center gap-[6px] text-[14px] font-semibold">
                             Purchased <Check size={14} />
@@ -558,7 +556,7 @@ const MyStories: React.FC = () => {
 
                   {(pdfPurchased || bookPurchased) && (
                     <p className="text-[14px] text-[#8C5AF2] italic mb-6 font-medium">
-                      {selectedOption === 'pdf_and_book' ? "Download PDF + Book" : "Download PDF Only"}
+                      {selectedOption === 'pdf_and_book' ? "Download PDF + Printed Book" : "Download PDF Only"}
                     </p>
                   )}
 
@@ -592,6 +590,7 @@ const MyStories: React.FC = () => {
         modalLoading={modalLoading}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
+        onStoryUpdate={handleStoryUpdate}
       />
 
       <DeleteStoryModal

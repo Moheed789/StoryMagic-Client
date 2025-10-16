@@ -181,7 +181,7 @@ const UserProfile = () => {
             </div>
           </div>
 
-          <div className="p-[42px] sm:p-8">
+          {/* <div className="p-[42px] sm:p-8">
             <div className="flex items-center justify-between">
               <h2 className="text-[32px] font-[400] text-[#8C5AF2] font-display">
                 Subscription Summary
@@ -363,8 +363,8 @@ const UserProfile = () => {
                   <div className="mt-8">
                     <button
                       onClick={!loading ? handleUpgradeToPro : undefined}
-                      disabled={loading}
-                      className={`w-full rounded-[10px] h-[44px] bg-white text-[#7C4DFF] px-4 text-sm font-semibold transition active:scale-[.98]
+                      disabled={true}
+                      className={`w-full rounded-[10px]  h-[44px] bg-white text-[#7C4DFF] px-4 text-sm font-semibold transition active:scale-[.98]
                         ${loading
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:bg-white/90"
@@ -376,7 +376,7 @@ const UserProfile = () => {
                 </article>
               </div>
             )}
-          </div>
+          </div> */}
         </section>
       </main>
     </div>
