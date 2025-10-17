@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     "idea"
   );
   const [storyId, setStoryId] = useState();
-  const [selectedPageCount, setSelectedPageCount] = useState<number>(10);
+  const [selectedPageCount, setSelectedPageCount] = useState<number>(1);
 
   const [storyTitle, setStoryTitle] = useState();
   const [authorName, setAuthorName] = useState<string>(
@@ -280,7 +280,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     </AuthContext.Provider>
   );
 };
-
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");

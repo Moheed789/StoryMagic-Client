@@ -398,24 +398,6 @@ export default function ChatInterface({
                   Story Length:
                 </Label>
               </div>
-              {/* <Select
-                value={selectedPageCount.toString()}
-                onValueChange={(value) => setSelectedPageCount(parseInt(value))}
-                disabled={createStoryMutation.isPending}
-              >
-                <SelectTrigger
-                  id="page-count"
-                  data-testid="select-page-count"
-                  className="w-32"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10 pages</SelectItem>
-                  <SelectItem value="15">15 pages</SelectItem>
-                  <SelectItem value="20">20 pages</SelectItem>
-                </SelectContent>
-              </Select> */}
               <Select
                 value={
                   selectedPageCount !== null

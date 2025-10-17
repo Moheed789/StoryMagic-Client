@@ -88,7 +88,7 @@ const GeneratedStory: React.FC = () => {
     };
   }, []);
 
-  const startStatusPolling = async () => {
+    const startStatusPolling = async () => {
     let attempts = 0;
     const maxAttempts = 40;
 
@@ -118,12 +118,17 @@ const GeneratedStory: React.FC = () => {
               clearInterval(pollRef.current);
               pollRef.current = null;
             }
+
             setIsGenerating(false);
             toast({
               title: "All Images Ready!",
               description:
                 "Your story images have been successfully generated.",
             });
+
+            setTimeout(() => {
+              navigate("/mystories");
+            }, 2000);
           }
         }
       } catch (err) {
@@ -272,12 +277,6 @@ const GeneratedStory: React.FC = () => {
               Generate Images
             </>
           )}
-        </Button>
-      </div>
-
-      <div className="w-full max-w-3xl mx-auto text-center">
-        <Button className="text-sm text-white" onClick={() => navigate("/")}>
-          Done
         </Button>
       </div>
     </div>
