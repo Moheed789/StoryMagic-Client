@@ -33,7 +33,7 @@ interface StoryPageEditorProps {
   isBatchGenerating?: boolean;
 }
 
-const API_BASE = "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev";
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 export default function StoryPageEditor({
   page,

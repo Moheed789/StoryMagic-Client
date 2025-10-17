@@ -60,10 +60,9 @@ interface ChatInterfaceProps {
   selectedCartoonStyle?: CartoonStyle;
 }
 
-const API_URL =
-  "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/generate";
-const STATUS_BASE_URL =
-  "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/";
+const API_URL = `${import.meta.env.VITE_BASE_URL}/stories/generate`;
+console.log("API_URL:", API_URL);
+const STATUS_BASE_URL = `${import.meta.env.VITE_BASE_URL}/`;
 const STYLE_INDEX: Record<CartoonStyle, number> = {
   traditional: 0,
   anime: 1,
@@ -142,7 +141,7 @@ export default function ChatInterface({
   const STATUS_URL = (base: string, id: string) =>
     `${base}stories/${id}/status`;
   const STORY_DETAILS_URL = (id: string) =>
-    `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${id}`;
+    `${import.meta.env.VITE_BASE_URL}/stories/${id}`;
 
   const createStoryMutation = useMutation({
     mutationFn: async (prompt: string) => {
@@ -398,6 +397,7 @@ export default function ChatInterface({
                   Story Length:
                 </Label>
               </div>
+
               <Select
                 value={
                   selectedPageCount !== null

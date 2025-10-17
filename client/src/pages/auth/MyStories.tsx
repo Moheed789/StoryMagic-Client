@@ -72,7 +72,7 @@ const MyStories: React.FC = () => {
         const session: any = await fetchAuthSession()
         const token = session?.tokens?.idToken?.toString()
 
-        const res = await fetch("https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories", {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/stories`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
             "Content-Type": "application/json",
@@ -122,7 +122,7 @@ const MyStories: React.FC = () => {
       }
 
       const response = await fetch(
-        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stripe/story-download-session",
+        `${import.meta.env.VITE_BASE_URL}/stripe/story-download-session`,
         {
           method: "POST",
           headers: {
@@ -198,7 +198,7 @@ const MyStories: React.FC = () => {
       }
 
       const response = await fetch(
-        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}/export-pdf`,
+        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/export-pdf`,
         {
           method: "GET",
           headers: {
@@ -304,7 +304,7 @@ const MyStories: React.FC = () => {
       const session: any = await fetchAuthSession()
       const token = session?.tokens?.idToken?.toString()
 
-      const res = await fetch(`https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}`, {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/stories/${storyId}`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
           "Content-Type": "application/json",

@@ -114,8 +114,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const isAuthenticated = !!user;
 
-  const API_URL = "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev";
-
   const fetchWithAuth = async (endpoint: string) => {
     try {
       const session: any = await (
@@ -123,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       ).fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
 
-      const res = await fetch(`${API_URL}${endpoint}`, {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}${endpoint}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

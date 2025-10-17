@@ -30,7 +30,7 @@ type StoryDetailsResponse = {
   }>;
 };
 
-const API_BASE = "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev";
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 async function getAuthHeader(): Promise<Record<string, string>> {
   try {

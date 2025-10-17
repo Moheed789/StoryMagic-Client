@@ -155,7 +155,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       }
 
       const generateResponse = await fetch(
-        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}/pages/${pageNumber}/generate-image`,
+        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/pages/${pageNumber}/generate-image`,
         {
           method: "POST",
           headers: {
@@ -194,7 +194,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
         try {
           const statusResponse = await fetch(
-            `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}/pages/${pageNumber}/image-status`,
+            `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/pages/${pageNumber}/image-status`,
             {
               method: "GET",
               headers: {
@@ -304,7 +304,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       }
 
       const response = await fetch(
-        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyIdFromPages}/page/${pageNo}`,
+        `${import.meta.env.VITE_BASE_URL}/stories/${storyIdFromPages}/page/${pageNo}`,
         {
           method: "PUT",
           headers: {

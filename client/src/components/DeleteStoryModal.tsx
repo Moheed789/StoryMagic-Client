@@ -27,7 +27,7 @@ const DeleteStoryModal: React.FC<DeleteStoryModalProps> = ({
       const token = session?.tokens?.idToken?.toString()
 
       const res = await fetch(
-        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}`,
+        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}`,
         {
           method: 'DELETE',
           headers: {
