@@ -217,10 +217,10 @@ const MyStories: React.FC = () => {
 
       if (contentType?.includes('application/json')) {
         const jsonData = await response.json()
-        
+
         if (jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl) {
           const downloadUrl = jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl
-          
+
           const link = document.createElement('a')
           link.href = downloadUrl
           link.download = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
@@ -228,7 +228,7 @@ const MyStories: React.FC = () => {
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
-          
+
           toast({
             title: "Download Started",
             description: "Your story download has begun",
@@ -241,20 +241,20 @@ const MyStories: React.FC = () => {
 
       if (contentType?.includes('application/pdf')) {
         const blob = await response.blob()
-        
+
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        
+
         const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
         link.download = filename
-        
+
         document.body.appendChild(link)
         link.click()
-        
+
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
-        
+
         toast({
           title: "Download Complete",
           description: "Your story has been downloaded successfully",
@@ -363,18 +363,18 @@ const MyStories: React.FC = () => {
   }
 
   const handleStoryUpdate = (updatedStory: StoryDetails) => {
-    setStories(prevStories => 
-      prevStories.map(story => 
-        story.storyId === updatedStory.storyId 
-          ? { 
-              ...story, 
-              title: updatedStory.title,
-              coverImageUrl: updatedStory.coverImageUrl 
-            }
+    setStories(prevStories =>
+      prevStories.map(story =>
+        story.storyId === updatedStory.storyId
+          ? {
+            ...story,
+            title: updatedStory.title,
+            coverImageUrl: updatedStory.coverImageUrl
+          }
           : story
       )
     )
-    
+
     if (modalStory?.storyId === updatedStory.storyId) {
       setModalStory(updatedStory)
     }
@@ -383,7 +383,7 @@ const MyStories: React.FC = () => {
   const heading = useMemo(
     () => (
       <div className="text-center mb-8 md:mb-10 mt-[105px]">
-        <h1 className="items-baseline text-[#24212C] font-display text-[40px] font-normal gap-2 md:text-[40px] tracking-tight">
+        <h1 className="items-baseline text-[#24212C] font-display text-[40px] font-normal gap-2 md:text-[64px] tracking-tight">
           Your Magical&nbsp;
           <span className="text-[#8C5AF2]">Stories</span>
         </h1>
@@ -442,20 +442,23 @@ const MyStories: React.FC = () => {
 
             return (
               <div key={story.storyId} className="rounded-[20px] border border-[#CCD8D3] bg-[#F4F3F7] w-[497px] shadow-sm overflow-hidden">
-                <div className="relative aspect-[16/9] w-full">
-                  <img
-                    src={story.coverImageUrl || "/placeholder-cover.jpg"}
-                    alt={story.title}
-                    className="h-full w-full object-cover"
-                  />
-                  <button
-                    onClick={() => openDeleteModal(story.storyId, story.title || "Untitled Story")}
-                    className="absolute bottom-3 right-3 w-6 h-6 bg-[#FFFFFF] text-[#FF383C] rounded-[6px] flex items-center justify-center text-sm font-bold transition-colors z-10"
-                    title="Delete Story"
-                  >
-                    <Trash size={16} />
-                  </button>
+                <div className="relative w-full overflow-hidden rounded-2xl">
+                  <div className="relative h-[340px] w-full">
+                    <img
+                      src={story.coverImageUrl || "/placeholder-cover.jpg"}
+                      alt={story.title}
+                      className="absolute inset-0 w-full h-full object-cover object-top"
+                    />
+                    <button
+                      onClick={() => openDeleteModal(story.storyId, story.title || "Untitled Story")}
+                      className="absolute bottom-3 right-3 w-6 h-6 bg-white text-[#FF383C] rounded-[6px] flex items-center justify-center text-sm font-bold z-10"
+                      title="Delete Story"
+                    >
+                      <Trash size={16} />
+                    </button>
+                  </div>
                 </div>
+
 
                 <div className="p-6">
                   <h3 className="text-[24px] font-bold font-display text-[#333333] mb-4 leading-tight">
@@ -469,13 +472,12 @@ const MyStories: React.FC = () => {
                   <div className="space-y-3 mb-6">
                     <div
                       onClick={() => pdfPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_only')}
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
-                        pdfPurchased && selectedOption === 'pdf_only'
-                          ? 'border-[#8C5AF2] bg-[#F8F6FF]'
-                          : pdfPurchased
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${pdfPurchased && selectedOption === 'pdf_only'
+                        ? 'border-[#8C5AF2] bg-[#F8F6FF]'
+                        : pdfPurchased
                           ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
                           : 'border-[#E5E5E5] bg-white cursor-default'
-                      }`}>
+                        }`}>
                       <div className="flex items-center space-x-3">
                         <div className="flex-1">
                           <span className="text-[14px] text-[#333333] font-medium">
@@ -509,13 +511,12 @@ const MyStories: React.FC = () => {
 
                     <div
                       onClick={() => bookPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_and_book')}
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
-                        bookPurchased && selectedOption === 'pdf_and_book'
-                          ? 'border-[#8C5AF2] bg-[#F8F6FF]'
-                          : bookPurchased
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${bookPurchased && selectedOption === 'pdf_and_book'
+                        ? 'border-[#8C5AF2] bg-[#F8F6FF]'
+                        : bookPurchased
                           ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
                           : 'border-[#E5E5E5] bg-white cursor-default'
-                      }`}>
+                        }`}>
                       <div className="flex items-center space-x-3">
                         <div className="flex-1 w-full max-w-[249px]">
                           <span className="text-[14px] text-[#333333] font-medium">
