@@ -54,7 +54,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-4    sm:px-6 py-4">
+      <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="h-8 w-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
@@ -100,7 +100,7 @@ export default function Header() {
               `}
                     onClick={() => setOpen(!open)}
                   >
-                    {user.apiProfile?.fullName || "John Smith"}
+                    {user.apiProfile?.fullName}
                     <ChevronDown
                       className={`h-4 w-4 transform transition-transform duration-300  ${
                         open
@@ -114,10 +114,10 @@ export default function Header() {
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
                       <div className="mb-3">
                         <h3 className="text-[16px] font-story font-[600] text-[#002014]">
-                          {user.apiProfile?.fullName || "John Smith"}
+                          {user.apiProfile?.fullName}
                         </h3>
                         <p className="text-[14px] font-story font-[600]  text-[#8DA99E]">
-                          {user.apiProfile?.email || "johnsmith12@gmail.com"}
+                          {user.apiProfile?.email}
                         </p>
                       </div>
 

@@ -603,6 +603,14 @@ export default function StoryPageEditor({
 
   return (
     <>
+      <Card>
+        {isFrontCover && (
+          <div className="mt-8">
+            <CharacterIdentityBox storyId={storyId} />
+          </div>
+        )}
+      </Card>
+
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display font-bold text-lg">{title}</h3>
@@ -716,11 +724,6 @@ export default function StoryPageEditor({
 
           {/* RIGHT column */}
           <div className="space-y-4">
-            {/* Character Identity box — outside the image, on top */}
-            {isFrontCover && storyId ? (
-              <CharacterIdentityBox storyId={storyId} />
-            ) : null}
-
             <Label className="text-sm font-semibold">Image Preview</Label>
 
             <div className="aspect-[4/3] bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center overflow-hidden">
@@ -746,6 +749,8 @@ export default function StoryPageEditor({
           </div>
         </div>
       </Card>
+
+
     </>
   );
 }
