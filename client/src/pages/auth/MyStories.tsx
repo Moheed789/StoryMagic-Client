@@ -382,7 +382,7 @@ const MyStories: React.FC = () => {
 
   const heading = useMemo(
     () => (
-      <div className="text-center mb-8 md:mb-10 mt-[105px]">
+      <div className="text-center mb-8 md:mb-10 md:mt-[105px]">
         <h1 className="items-baseline text-[#24212C] font-display text-[40px] font-normal gap-2 md:text-[64px] tracking-tight">
           Your Magical&nbsp;
           <span className="text-[#8C5AF2]">Stories</span>

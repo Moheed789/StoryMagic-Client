@@ -86,7 +86,7 @@ export function CartoonStyleSelector({
           >
             <div className="flex items-center gap-1">
               <CarouselPrevious
-                className="static translate-y-0 flex-shrink-0"
+                className="static translate-y-0 flex-shrink-0  hidden md:flex"
                 data-testid="button-carousel-prev"
               />
 
@@ -160,7 +160,7 @@ export function CartoonStyleSelector({
               </CarouselContent>
 
               <CarouselNext
-                className="static translate-y-0 flex-shrink-0"
+                className="static translate-y-0 flex-shrink-0 hidden md:flex"
                 data-testid="button-carousel-next"
               />
             </div>
