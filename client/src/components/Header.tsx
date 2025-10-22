@@ -54,26 +54,26 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-6 py-4">
+      <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <div className="h-8 w-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
               <BookOpenIcon className="h-5 w-5 text-primary-foreground" />
             </div>
             <h1
-              className="text-xl font-display font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent cursor-pointer"
+              className="text-md md:text-xl font-display font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent cursor-pointer"
               onClick={() => navigate("/")}
             >
               StoryMagic
             </h1>
           </div>
 
-          <nav className="flex items-center gap-3 relative">
+          <nav className="flex items-center gap-1 md:gap-3 relative">
             {user ? (
               <>
                 <Button
                   variant="ghost"
-                  className="border border-[#D2D2D2]"
+                  className="border border-[#D2D2D2] md:text-[14px] text-[11px] py-[8px] px-[11px] sm:px-[16px] "
                   onClick={() => navigate("/mystories")}
                 >
                   My Stories
@@ -81,7 +81,7 @@ export default function Header() {
 
                 <Button
                   variant="ghost"
-                  className="gap-2 bg-[#8C5AF2] text-white hover:bg-[#7B4CEB]"
+                  className="gap-2 bg-[#8C5AF2] text-white hover:bg-[#7B4CEB] md:text-[14px] text-[11px] px-[8px] py-[8px] sm:px-[16px] "
                   onClick={() => goHomeBottom()}
                 >
                   <SparklesIcon className="h-4 w-4" />
@@ -92,15 +92,15 @@ export default function Header() {
                   <Button
                     variant="ghost"
                     className={`
-                flex items-center justify-between px-[16px] rounded-lg
-                text-[#8C5AF2] font-medium transition-all duration-200
+                flex items-center justify-between  rounded-lg py-[8px] px-[8px] sm:px-[16px] 
+                text-[#8C5AF2] font-medium transition-all duration-200 md:text-[14px] text-[11px]
                 ${open ? "bg-[#F0F0F0]" : ""}
                 hover:bg-[#F0F0F0]
                 
               `}
                     onClick={() => setOpen(!open)}
                   >
-                    {user.apiProfile?.fullName || "John Smith"}
+                    {user.apiProfile?.fullName}
                     <ChevronDown
                       className={`h-4 w-4 transform transition-transform duration-300  ${
                         open
@@ -114,10 +114,10 @@ export default function Header() {
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
                       <div className="mb-3">
                         <h3 className="text-[16px] font-story font-[600] text-[#002014]">
-                          {user.apiProfile?.fullName || "John Smith"}
+                          {user.apiProfile?.fullName}
                         </h3>
                         <p className="text-[14px] font-story font-[600]  text-[#8DA99E]">
-                          {user.apiProfile?.email || "johnsmith12@gmail.com"}
+                          {user.apiProfile?.email}
                         </p>
                       </div>
 
