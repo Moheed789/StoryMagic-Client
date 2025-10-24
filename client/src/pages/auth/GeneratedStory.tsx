@@ -53,8 +53,12 @@ const GeneratedStory: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  
+
+  const [unsavedPages, setUnsavedPages] = useState<Set<string>>(new Set());
+
+  const pageEditorsRef = useRef<Map<string, () => Promise<boolean>>>(new Map());
 
   useEffect(() => {
     (async () => {
@@ -88,7 +92,7 @@ const GeneratedStory: React.FC = () => {
     };
   }, []);
 
-    const startStatusPolling = async () => {
+  const startStatusPolling = async () => {
     let attempts = 0;
     const maxAttempts = 40;
 
@@ -147,9 +151,52 @@ const GeneratedStory: React.FC = () => {
     pollRef.current = id;
   };
 
+  const saveAllUnsavedPages = async (): Promise<boolean> => {
+    if (unsavedPages.size === 0) return true;
+
+    try {
+      const savePromises: Promise<boolean>[] = [];
+      
+      for (const pageId of Array.from(unsavedPages)) {
+        const saveFunction = pageEditorsRef.current.get(pageId);
+        if (saveFunction) {
+          savePromises.push(saveFunction());
+        }
+      }
+
+      const results = await Promise.all(savePromises);
+      const allSaved = results.every(result => result === true);
+
+      if (allSaved) {
+        setUnsavedPages(new Set());
+        toast({
+          title: "Auto-save Complete",
+          description: "All changes have been saved before generating images.",
+          variant: "default",
+        });
+      }
+
+      return allSaved;
+    } catch (error) {
+      console.error("Error saving pages:", error);
+      toast({
+        title: "Save Error",
+        description: "Failed to save some changes. Please save manually before generating images.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const batchGenerateImagesMutation = useMutation({
     mutationFn: async () => {
       if (!storyId) throw new Error("Missing storyId from route");
+      
+      const saveSuccess = await saveAllUnsavedPages();
+      if (!saveSuccess) {
+        throw new Error("Please save all changes before generating images");
+      }
+
       const authHeader = await getAuthHeader();
 
       const response = await fetch(
@@ -181,7 +228,7 @@ const GeneratedStory: React.FC = () => {
       console.error("Batch image generation failed:", error);
       toast({
         title: "Batch Generation Failed",
-        description: "Failed to generate all images. Please try again later.",
+        description: error.message || "Failed to generate all images. Please try again later.",
         variant: "destructive",
       });
       setIsGenerating(false);
@@ -190,7 +237,36 @@ const GeneratedStory: React.FC = () => {
 
   const handleBatchGenerateImages = () => {
     if (isGenerating || batchGenerateImagesMutation.isPending) return;
+    
+    if (unsavedPages.size > 0) {
+      toast({
+        title: "Auto-saving Changes",
+        description: "Saving your modifications before generating images...",
+        variant: "default",
+      });
+    }
+    
     batchGenerateImagesMutation.mutate();
+  };
+
+  const markPageAsUnsaved = (pageId: string) => {
+    setUnsavedPages(prev => new Set([...Array.from(prev), pageId]));
+  };
+
+  const markPageAsSaved = (pageId: string) => {
+    setUnsavedPages(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(pageId);
+      return newSet;
+    });
+  };
+
+  const registerPageEditor = (pageId: string, saveFunction: () => Promise<boolean>) => {
+    pageEditorsRef.current.set(pageId, saveFunction);
+  };
+
+  const unregisterPageEditor = (pageId: string) => {
+    pageEditorsRef.current.delete(pageId);
   };
 
   const allImagesGenerated =
@@ -229,6 +305,8 @@ const GeneratedStory: React.FC = () => {
     !storyId ||
     allImagesGenerated;
 
+  const hasUnsavedChanges = unsavedPages.size > 0;
+
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -241,6 +319,15 @@ const GeneratedStory: React.FC = () => {
               ? `by ${currentStory.author}`
               : "Refine your story text and image descriptions."}
           </p>
+          
+          {hasUnsavedChanges && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                ⚠️ You have unsaved changes in {unsavedPages.size} page(s). 
+                Changes will be auto-saved when you generate images.
+              </p>
+            </div>
+          )}
         </div>
 
         {(currentPages || []).map((page: any) => (
@@ -248,6 +335,10 @@ const GeneratedStory: React.FC = () => {
             key={page.id}
             page={page}
             isBatchGenerating={isGenerating && !page.imageUrl}
+            onMarkUnsaved={() => markPageAsUnsaved(page.id)}
+            onMarkSaved={() => markPageAsSaved(page.id)}
+            onRegisterSaveFunction={(saveFunction) => registerPageEditor(page.id, saveFunction)}
+            onUnregisterSaveFunction={() => unregisterPageEditor(page.id)}
           />
         ))}
       </div>
@@ -267,17 +358,25 @@ const GeneratedStory: React.FC = () => {
           {batchGenerateImagesMutation.isPending || isGenerating ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent" />
-              Generating All Images...
+              {batchGenerateImagesMutation.isPending && hasUnsavedChanges 
+                ? "Saving & Generating..." 
+                : "Generating All Images..."}
             </>
           ) : allImagesGenerated ? (
             <>Images Generated</>
           ) : (
             <>
               <RefreshCwIcon className="h-4 w-4" />
-              Generate Images
+              {hasUnsavedChanges ? "Save & Generate Images" : "Generate Images"}
             </>
           )}
         </Button>
+        
+        {hasUnsavedChanges && !isDisabled && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Unsaved changes will be automatically saved before generation
+          </p>
+        )}
       </div>
     </div>
   );
