@@ -54,7 +54,6 @@ const GeneratedStory: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  
 
   const [unsavedPages, setUnsavedPages] = useState<Set<string>>(new Set());
 
@@ -206,6 +205,7 @@ const GeneratedStory: React.FC = () => {
           headers: { "Content-Type": "application/json", ...authHeader },
           body: JSON.stringify({
             characterDescription: characterDescription?.trim() || undefined,
+            targetAge: "3-5 years", // Direct value instead of state
           }),
         }
       );

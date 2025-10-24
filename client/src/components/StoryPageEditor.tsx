@@ -91,6 +91,14 @@ export default function StoryPageEditor({
   }, [hasUnsavedChanges, editedPage, onRegisterSaveFunction, onUnregisterSaveFunction]);
 
   useEffect(() => {
+    if (!isEditing) {
+      setHasUnsavedChanges(false);
+      if (onMarkSaved) {
+        onMarkSaved();
+      }
+      return;
+    }
+
     const hasChanges =
       editedPage.text !== page.text ||
       editedPage.imagePrompt !== page.imagePrompt;
@@ -102,7 +110,7 @@ export default function StoryPageEditor({
     } else if (!hasChanges && onMarkSaved) {
       onMarkSaved();
     }
-  }, [editedPage.text, editedPage.imagePrompt, page.text, page.imagePrompt, onMarkUnsaved, onMarkSaved]);
+  }, [isEditing, editedPage.text, editedPage.imagePrompt, page.text, page.imagePrompt, onMarkUnsaved, onMarkSaved]);
 
   const [, params] = useRoute("/generated-story/:storyId");
   const storyId = params?.storyId ?? page.storyId;
@@ -173,6 +181,7 @@ export default function StoryPageEditor({
   const handleSave = async () => {
     await handleSaveInternal();
     setIsEditing(false);
+    setHasUnsavedChanges(false); 
   };
 
   const handleCancel = () => {
@@ -301,7 +310,7 @@ export default function StoryPageEditor({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h3 className="font-display font-bold text-lg">{title}</h3>
-            {hasUnsavedChanges && (
+            {hasUnsavedChanges && isEditing && (
               <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
                 Unsaved
               </span>
