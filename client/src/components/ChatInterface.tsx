@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { SendIcon, SparklesIcon, UserIcon, BookOpenIcon } from "lucide-react";
+import { SendIcon, SparklesIcon, UserIcon, BookOpenIcon, UsersIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
@@ -55,6 +55,7 @@ interface StoryWithPages {
 type CartoonStyle = "traditional" | "anime" | "3d" | "chibi";
 
 const safeTrim = (v?: string | null) => (typeof v === "string" ? v.trim() : "");
+
 interface ChatInterfaceProps {
   onStoryGenerated?: (storyData: StoryWithPages) => void;
   selectedCartoonStyle?: CartoonStyle;
@@ -87,6 +88,9 @@ export default function ChatInterface({
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
+  // Add target age state
+  const [targetAge, setTargetAge] = useState<string>("3-5 years");
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -100,11 +104,13 @@ export default function ChatInterface({
   const [inputValue, setInputValue] = useState("");
   const [showLoginModal, setShowLoginModal] = useState(false);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   useEffect(() => {
     return () => {
       if (loginTimerRef.current) clearTimeout(loginTimerRef.current);
     };
   }, []);
+  
   const [loc] = useLocation();
 
   useEffect(() => {
@@ -148,9 +154,11 @@ export default function ChatInterface({
       const authHeader = await getAuthHeader();
       const imageStyleId =
         (selectedCartoonStyle && STYLE_INDEX[selectedCartoonStyle]) ?? 0;
+      
       const payload: Record<string, any> = {
         prompt,
         totalPages: selectedPageCount,
+        targetAge,
         userId:
           (user as any)?.userId ??
           (user as any)?.sub ??
@@ -163,6 +171,8 @@ export default function ChatInterface({
       const author = safeTrim(authorName);
       if (title) payload.title = title;
       if (author) payload.author = author;
+
+      console.log("Story generation payload:", payload);
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -390,38 +400,72 @@ export default function ChatInterface({
 
         <div className="p-4 border-t border-card-border">
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="page-count" className="text-sm font-medium">
-                  Story Length:
-                </Label>
+            {/* First row: Story Length and Target Age */}
+            <div className="flex items-center gap-6">
+              {/* Story Length */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="page-count" className="text-sm font-medium">
+                    Story Length:
+                  </Label>
+                </div>
+
+                <Select
+                  value={
+                    selectedPageCount !== null
+                      ? String(selectedPageCount)
+                      : undefined
+                  }
+                  onValueChange={(v) => setSelectedPageCount(Number(v))}
+                  disabled={createStoryMutation.isPending}
+                >
+                  <SelectTrigger
+                    id="page-count"
+                    data-testid="select-page-count"
+                    className="w-32"
+                  >
+                    <SelectValue placeholder="Select pages" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 pages</SelectItem>
+                    <SelectItem value="15">15 pages</SelectItem>
+                    <SelectItem value="20">20 pages</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select
-                value={
-                  selectedPageCount !== null
-                    ? String(selectedPageCount)
-                    : undefined
-                }
-                onValueChange={(v) => setSelectedPageCount(Number(v))}
-                disabled={createStoryMutation.isPending}
-              >
-                <SelectTrigger
-                  id="page-count"
-                  data-testid="select-page-count"
-                  className="w-32"
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="target-age" className="text-sm font-medium">
+                    Target Age:
+                  </Label>
+                </div>
+
+                <Select
+                  value={targetAge}
+                  onValueChange={(v) => setTargetAge(v)}
+                  disabled={createStoryMutation.isPending}
                 >
-                  <SelectValue placeholder="Select pages" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10 pages</SelectItem>
-                  <SelectItem value="15">15 pages</SelectItem>
-                  <SelectItem value="20">20 pages</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectTrigger
+                    id="target-age"
+                    data-testid="select-target-age"
+                    className="w-40"
+                  >
+                    <SelectValue placeholder="Select age" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3-5 years">3–5 years</SelectItem>
+                    <SelectItem value="5-7 years">5–7 years</SelectItem>
+                    <SelectItem value="7-9 years">7–9 years</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
+            {/* Second row: Title and Author */}
             <div className="flex flex-col md:flex-row gap-2">
               <Input
                 placeholder="Story Title (e.g., The Brave Little Mouse)"
@@ -437,6 +481,7 @@ export default function ChatInterface({
               />
             </div>
 
+            {/* Third row: Story input and send button */}
             <div className="flex gap-2">
               <Input
                 data-testid="input-story-idea"
