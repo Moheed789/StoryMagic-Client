@@ -88,7 +88,12 @@ export default function StoryPageEditor({
         onUnregisterSaveFunction();
       }
     };
-  }, [hasUnsavedChanges, editedPage, onRegisterSaveFunction, onUnregisterSaveFunction]);
+  }, [
+    hasUnsavedChanges,
+    editedPage,
+    onRegisterSaveFunction,
+    onUnregisterSaveFunction,
+  ]);
 
   useEffect(() => {
     if (!isEditing) {
@@ -110,7 +115,15 @@ export default function StoryPageEditor({
     } else if (!hasChanges && onMarkSaved) {
       onMarkSaved();
     }
-  }, [isEditing, editedPage.text, editedPage.imagePrompt, page.text, page.imagePrompt, onMarkUnsaved, onMarkSaved]);
+  }, [
+    isEditing,
+    editedPage.text,
+    editedPage.imagePrompt,
+    page.text,
+    page.imagePrompt,
+    onMarkUnsaved,
+    onMarkSaved,
+  ]);
 
   const [, params] = useRoute("/generated-story/:storyId");
   const storyId = params?.storyId ?? page.storyId;
@@ -181,7 +194,7 @@ export default function StoryPageEditor({
   const handleSave = async () => {
     await handleSaveInternal();
     setIsEditing(false);
-    setHasUnsavedChanges(false); 
+    setHasUnsavedChanges(false);
   };
 
   const handleCancel = () => {

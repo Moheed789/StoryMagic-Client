@@ -11,7 +11,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { SendIcon, SparklesIcon, UserIcon, BookOpenIcon, UsersIcon } from "lucide-react";
+import {
+  SendIcon,
+  SparklesIcon,
+  UserIcon,
+  BookOpenIcon,
+  UsersIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
@@ -104,13 +110,13 @@ export default function ChatInterface({
   const [inputValue, setInputValue] = useState("");
   const [showLoginModal, setShowLoginModal] = useState(false);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   useEffect(() => {
     return () => {
       if (loginTimerRef.current) clearTimeout(loginTimerRef.current);
     };
   }, []);
-  
+
   const [loc] = useLocation();
 
   useEffect(() => {
@@ -154,7 +160,7 @@ export default function ChatInterface({
       const authHeader = await getAuthHeader();
       const imageStyleId =
         (selectedCartoonStyle && STYLE_INDEX[selectedCartoonStyle]) ?? 0;
-      
+
       const payload: Record<string, any> = {
         prompt,
         totalPages: selectedPageCount,
@@ -434,7 +440,6 @@ export default function ChatInterface({
                   </SelectContent>
                 </Select>
               </div>
-
 
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
