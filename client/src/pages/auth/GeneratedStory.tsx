@@ -145,7 +145,7 @@ const GeneratedStory: React.FC = () => {
         }
         setIsGenerating(false);
       }
-    }, 5000);
+    }, 8000);
 
     pollRef.current = id;
   };
