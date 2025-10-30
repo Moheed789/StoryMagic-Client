@@ -20,7 +20,7 @@ export default function Subscription() {
       }
 
       const response = await fetch(
-        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stripe/checkout-session",
+        "${import.meta.env.VITE_BASE_URL}/stripe/checkout-session",
         {
           method: "POST",
           headers: {
@@ -66,7 +66,7 @@ export default function Subscription() {
       }
 
       const response = await fetch(
-        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/cancel-plan",
+        "${import.meta.env.VITE_BASE_URL}/cancel-plan",
         {
           method: "POST",
           headers: {

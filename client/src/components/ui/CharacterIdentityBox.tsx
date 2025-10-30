@@ -50,7 +50,7 @@ const CharacterIdentityBox: React.FC<CharacterIdentityBoxProps> = ({ storyId }) 
       }
 
       const response = await fetch(
-        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}/characters`,
+        `${import.meta.env.VITE_BASE_URL}/${storyId}/characters`,
         {
           method: "GET",
           headers: {
@@ -128,7 +128,7 @@ const CharacterIdentityBox: React.FC<CharacterIdentityBoxProps> = ({ storyId }) 
       console.log("Saving all characters:", charactersToSave);
 
       const response = await fetch(
-        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyId}/characters`,
+        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/characters`,
         {
           method: "PUT",
           headers: {
