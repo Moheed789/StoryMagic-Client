@@ -130,7 +130,7 @@ const CharacterIdentityBox: React.FC<CharacterIdentityBoxProps> = ({ storyId }) 
       const response = await fetch(
         `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/characters`,
         {
-          method: "PUT",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
