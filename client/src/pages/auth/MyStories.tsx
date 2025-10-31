@@ -6,6 +6,7 @@ import DeleteStoryModal from "../../components/DeleteStoryModal";
 import StoryPreviewModal from "../../components/StoryPreviewModal";
 import { Check, Trash, X } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
+// @ts-ignore: No types available for mockData.js
 import { US_STATES, MAJOR_US_CITIES } from "../../utils/mockData";
 
 type Story = {
@@ -298,6 +299,98 @@ const MyStories: React.FC = () => {
           ...prev[storyId],
           [downloadOption === "pdf_only" ? "pdf" : "book"]: false,
         },
+      }));
+    }
+  };
+
+  const handleBookCheckout = async (form: BookPurchaseForm) => {
+    if (!form) return;
+
+    try {
+      setPurchaseLoading((prev) => ({
+        ...prev,
+        [form.storyId]: { ...prev[form.storyId], book: true },
+      }));
+
+      const session: any = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login first",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const payload = {
+        storyId: form.storyId,
+        pageCount: Number(form.pageOption),
+        shippingOption: form.shipping,
+        totalPrice: Math.round(calcTotal(form) * 100),
+        shippingAddress: {
+          name: form.shipping_address.name,
+          line1: form.shipping_address.street1,
+          city: form.shipping_address.city,
+          state: form.shipping_address.state_code,
+          postalCode: form.shipping_address.postcode,
+          country: form.shipping_address.country_code,
+        },
+      };
+
+      const res = await fetch(
+        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stripe/story-download-book",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to create checkout session");
+      }
+
+      const checkoutUrl =
+        data.url ||
+        data.sessionUrl ||
+        data.checkout_url ||
+        data.checkoutUrl ||
+        data.session?.url;
+
+      if (checkoutUrl) {
+        localStorage.setItem(
+          "pendingPurchase",
+          JSON.stringify({
+            storyId: form.storyId,
+            downloadOption: "pdf_and_book",
+            timestamp: Date.now(),
+          })
+        );
+        window.location.href = checkoutUrl;
+      } else {
+        toast({
+          title: "Checkout Error",
+          description: "Checkout URL not found",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Checkout Failed",
+        description: `Checkout failed: ${error?.message || "Unknown error"}`,
+        variant: "destructive",
+      });
+    } finally {
+      setPurchaseLoading((prev) => ({
+        ...prev,
+        [form.storyId]: { ...prev[form.storyId], book: false },
       }));
     }
   };
@@ -1021,7 +1114,7 @@ const MyStories: React.FC = () => {
                         className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40 bg-white"
                       >
                         <option value="">Select City</option>
-                        {MAJOR_US_CITIES.map((city) => (
+                        {MAJOR_US_CITIES.map((city: string) => (
                           <option key={city} value={city}>
                             {city}
                           </option>
@@ -1050,7 +1143,7 @@ const MyStories: React.FC = () => {
                         className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40 bg-white"
                       >
                         <option value="">Select State</option>
-                        {US_STATES.map((state) => (
+                        {US_STATES.map((state: { code: string; name: string }) => (
                           <option key={state.code} value={state.code}>
                             {state.name}
                           </option>
@@ -1156,24 +1249,22 @@ const MyStories: React.FC = () => {
                 className="w-full h-11 rounded-xl bg-[#8C5AF2] text-white font-semibold hover:bg-[#7C4AE8] transition disabled:opacity-60"
                 disabled={!isAddressValid(bookForm.shipping_address)}
                 onClick={() => {
-                  if (!bookForm) return;
+                  (async () => {
+                    if (!bookForm) return;
 
-                  if (!isAddressValid(bookForm.shipping_address)) {
-                    toast({
-                      title: "Address incomplete",
-                      description: "Please fill all required fields.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
+                    if (!isAddressValid(bookForm.shipping_address)) {
+                      toast({
+                        title: "Address incomplete",
+                        description: "Please fill all required fields.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
 
-                  handlePurchase(bookForm.storyId, "pdf_and_book", {
-                    pageOption: bookForm.pageOption,
-                    shipping: bookForm.shipping,
-                    shipping_address: bookForm.shipping_address,
-                  });
-                  setShowBookForm(null);
-                  setBookForm(null);
+                    await handleBookCheckout(bookForm);
+                    setShowBookForm(null);
+                    setBookForm(null);
+                  })();
                 }}
               >
                 Continue to payment
