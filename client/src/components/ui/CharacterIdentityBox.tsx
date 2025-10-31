@@ -128,9 +128,9 @@ const CharacterIdentityBox: React.FC<CharacterIdentityBoxProps> = ({ storyId }) 
       console.log("Saving all characters:", charactersToSave);
 
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/characters`,
+        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/updatecharacters`,
         {
-          method: "GET",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
