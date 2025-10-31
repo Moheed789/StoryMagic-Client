@@ -6,6 +6,7 @@ import DeleteStoryModal from "../../components/DeleteStoryModal";
 import StoryPreviewModal from "../../components/StoryPreviewModal";
 import { Check, Trash, X } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
+import { US_STATES, MAJOR_US_CITIES } from "../../utils/mockData";
 
 type Story = {
   storyId: string;
@@ -102,7 +103,7 @@ const MyStories: React.FC = () => {
   const [selectedDownloadOption, setSelectedDownloadOption] = useState<{
     [storyId: string]: "pdf_only" | "pdf_and_book";
   }>({});
-  const [showBookFormFor, setShowBookFormFor] = useState<string | null>(null);
+  const [showBookFormFor, setShowBookForm] = useState<string | null>(null);
   const [bookForm, setBookForm] = useState<BookPurchaseForm | null>(null);
 
   useEffect(() => {
@@ -180,7 +181,7 @@ const MyStories: React.FC = () => {
     else if (finalPages <= 15) autoPage = "15";
     else autoPage = "20";
 
-    setShowBookFormFor(story.storyId);
+    setShowBookForm(story.storyId);
     setBookForm({
       storyId: story.storyId,
       pageOption: autoPage,
@@ -824,7 +825,7 @@ const MyStories: React.FC = () => {
               </div>
               <button
                 onClick={() => {
-                  setShowBookFormFor(null);
+                  setShowBookForm(null);
                   setBookForm(null);
                 }}
                 className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500"
@@ -943,8 +944,10 @@ const MyStories: React.FC = () => {
                         )
                       }
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      placeholder="Enter full name"
                     />
                   </div>
+                  
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">
                       Address line 1
@@ -966,11 +969,13 @@ const MyStories: React.FC = () => {
                         )
                       }
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      placeholder="Enter your street address"
                     />
                   </div>
+
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">
-                      Address line 2 . optional
+                      Address line 2 (optional)
                     </label>
                     <input
                       type="text"
@@ -989,15 +994,16 @@ const MyStories: React.FC = () => {
                         )
                       }
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      placeholder="Apartment, suite, etc."
                     />
                   </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">
                         City
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={bookForm.shipping_address.city}
                         onChange={(e) =>
                           setBookForm((prev) =>
@@ -1012,15 +1018,21 @@ const MyStories: React.FC = () => {
                               : prev
                           )
                         }
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                      />
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40 bg-white"
+                      >
+                        <option value="">Select City</option>
+                        {MAJOR_US_CITIES.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">
-                        State/Province
+                        State
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={bookForm.shipping_address.state_code}
                         onChange={(e) =>
                           setBookForm((prev) =>
@@ -1035,14 +1047,22 @@ const MyStories: React.FC = () => {
                               : prev
                           )
                         }
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                      />
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40 bg-white"
+                      >
+                        <option value="">Select State</option>
+                        {US_STATES.map((state) => (
+                          <option key={state.code} value={state.code}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">
-                        Postal/ZIP code
+                        ZIP Code
                       </label>
                       <input
                         type="text"
@@ -1061,11 +1081,12 @@ const MyStories: React.FC = () => {
                           )
                         }
                         className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                        placeholder="Enter ZIP code"
                       />
                     </div>
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">
-                        Country code
+                        Country
                       </label>
                       <input
                         type="text"
@@ -1084,9 +1105,12 @@ const MyStories: React.FC = () => {
                           )
                         }
                         className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                        placeholder="US"
+                        readOnly
                       />
                     </div>
                   </div>
+
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">
                       Phone
@@ -1108,6 +1132,7 @@ const MyStories: React.FC = () => {
                         )
                       }
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      placeholder="Enter phone number"
                     />
                   </div>
                 </div>
@@ -1147,7 +1172,7 @@ const MyStories: React.FC = () => {
                     shipping: bookForm.shipping,
                     shipping_address: bookForm.shipping_address,
                   });
-                  setShowBookFormFor(null);
+                  setShowBookForm(null);
                   setBookForm(null);
                 }}
               >
