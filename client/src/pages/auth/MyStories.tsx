@@ -340,7 +340,7 @@ const MyStories: React.FC = () => {
       };
 
       const res = await fetch(
-        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stripe/story-download-book",
+        `${import.meta.env.VITE_BASE_URL}/stripe/story-download-book`,
         {
           method: "POST",
           headers: {
