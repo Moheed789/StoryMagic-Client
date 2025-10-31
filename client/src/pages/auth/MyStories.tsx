@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { fetchAuthSession } from "aws-amplify/auth"
 import DeleteStoryModal from "../../components/DeleteStoryModal"
 import StoryPreviewModal from "../../components/StoryPreviewModal"
-import { Check, Trash } from "lucide-react"
+import { Check, Trash, X } from "lucide-react"
 import { useToast } from "../../hooks/use-toast"
 
 type Story = {
@@ -51,6 +51,35 @@ type StoryDetails = {
   author?: string
 }
 
+type ShippingAddress = {
+  name: string
+  street1: string
+  street2: string
+  city: string
+  state_code: string
+  postcode: string
+  country_code: string
+  phone_number: string
+}
+
+type BookPurchaseForm = {
+  storyId: string
+  pageOption: "10" | "15" | "20"
+  shipping: "standard" | "express"
+  shipping_address: ShippingAddress
+}
+
+const PAGE_PRICES: Record<"10" | "15" | "20", number> = {
+  "10": 16.99,
+  "15": 18.99,
+  "20": 20.99,
+}
+
+const SHIPPING_PRICES: Record<"standard" | "express", { price: number; label: string; eta: string }> = {
+  standard: { price: 6.69, label: "Standard", eta: "11–13 days" },
+  express: { price: 21.74, label: "Express", eta: "6–8 days" },
+}
+
 const MyStories: React.FC = () => {
   const { toast } = useToast()
 
@@ -64,7 +93,10 @@ const MyStories: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [storyToDelete, setStoryToDelete] = useState<{ id: string; title: string } | null>(null)
   const [purchaseLoading, setPurchaseLoading] = useState<{ [storyId: string]: { pdf?: boolean; book?: boolean } }>({})
-  const [selectedDownloadOption, setSelectedDownloadOption] = useState<{ [storyId: string]: 'pdf_only' | 'pdf_and_book' }>({})
+  const [selectedDownloadOption, setSelectedDownloadOption] = useState<{ [storyId: string]: "pdf_only" | "pdf_and_book" }>({})
+
+  const [showBookFormFor, setShowBookFormFor] = useState<string | null>(null)
+  const [bookForm, setBookForm] = useState<BookPurchaseForm | null>(null)
 
   useEffect(() => {
     const loadStories = async () => {
@@ -99,14 +131,92 @@ const MyStories: React.FC = () => {
     loadStories()
   }, [])
 
-  const handlePurchase = async (storyId: string, downloadOption: 'pdf_only' | 'pdf_and_book') => {
+  // yahan se: Buy Now pe click hote hi detail le lo
+  const openBookForm = async (story: Story) => {
     try {
-      setPurchaseLoading(prev => ({
+      const session: any = await fetchAuthSession()
+      const token = session?.tokens?.idToken?.toString()
+
+      // list se jo aaya
+      let totalPages = story.totalPages
+
+      // agar nahi mila to detail API
+      if (!totalPages || totalPages <= 0) {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/stories/${story.storyId}`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            "Content-Type": "application/json",
+          },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          totalPages =
+            data?.totalPages ||
+            (Array.isArray(data?.pages) ? data.pages.length : 0)
+        }
+      }
+
+      const tp = totalPages && totalPages > 0 ? totalPages : 10
+
+      let autoPage: "10" | "15" | "20" = "10"
+      if (tp <= 10) autoPage = "10"
+      else if (tp <= 15) autoPage = "15"
+      else autoPage = "20"
+
+      setShowBookFormFor(story.storyId)
+      setBookForm({
+        storyId: story.storyId,
+        pageOption: autoPage,
+        shipping: "standard",
+        shipping_address: {
+          name: "",
+          street1: "",
+          street2: "",
+          city: "",
+          state_code: "",
+          postcode: "",
+          country_code: "US",
+          phone_number: "",
+        },
+      })
+    } catch (err) {
+      console.error("openBookForm error", err)
+      // fallback
+      setShowBookFormFor(story.storyId)
+      setBookForm({
+        storyId: story.storyId,
+        pageOption: "10",
+        shipping: "standard",
+        shipping_address: {
+          name: "",
+          street1: "",
+          street2: "",
+          city: "",
+          state_code: "",
+          postcode: "",
+          country_code: "US",
+          phone_number: "",
+        },
+      })
+    }
+  }
+
+  const handlePurchase = async (
+    storyId: string,
+    downloadOption: "pdf_only" | "pdf_and_book",
+    extra?: {
+      pageOption?: "10" | "15" | "20"
+      shipping?: "standard" | "express"
+      shipping_address?: ShippingAddress
+    }
+  ) => {
+    try {
+      setPurchaseLoading((prev) => ({
         ...prev,
         [storyId]: {
           ...prev[storyId],
-          [downloadOption === 'pdf_only' ? 'pdf' : 'book']: true
-        }
+          [downloadOption === "pdf_only" ? "pdf" : "book"]: true,
+        },
       }))
 
       const session: any = await fetchAuthSession()
@@ -121,32 +231,40 @@ const MyStories: React.FC = () => {
         return
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/stripe/story-download-session`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/stripe/story-download-session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          storyId: storyId,
+          downloadOption: downloadOption,
+          bookConfig: {
+            pageCount: extra?.pageOption ? Number(extra.pageOption) : undefined,
+            pagePrice: extra?.pageOption ? PAGE_PRICES[extra.pageOption] : undefined,
+            shippingMethod: extra?.shipping,
+            shippingPrice: extra?.shipping ? SHIPPING_PRICES[extra.shipping].price : undefined,
+            shipping_address: extra?.shipping_address,
           },
-          body: JSON.stringify({
-            storyId: storyId,
-            downloadOption: downloadOption
-          })
-        }
-      )
+        }),
+      })
 
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || "Purchase failed")
 
-      const checkoutUrl = data.url || data.sessionUrl || data.checkout_url || data.checkoutUrl || data.session?.url
+      const checkoutUrl =
+        data.url || data.sessionUrl || data.checkout_url || data.checkoutUrl || data.session?.url
 
       if (checkoutUrl) {
-        localStorage.setItem('pendingPurchase', JSON.stringify({
-          storyId,
-          downloadOption,
-          timestamp: Date.now()
-        }))
+        localStorage.setItem(
+          "pendingPurchase",
+          JSON.stringify({
+            storyId,
+            downloadOption,
+            timestamp: Date.now(),
+          })
+        )
 
         window.location.href = checkoutUrl
       } else {
@@ -163,17 +281,17 @@ const MyStories: React.FC = () => {
         variant: "destructive",
       })
     } finally {
-      setPurchaseLoading(prev => ({
+      setPurchaseLoading((prev) => ({
         ...prev,
         [storyId]: {
           ...prev[storyId],
-          [downloadOption === 'pdf_only' ? 'pdf' : 'book']: false
-        }
+          [downloadOption === "pdf_only" ? "pdf" : "book"]: false,
+        },
       }))
     }
   }
 
-  const handleDownload = async (storyId: string, downloadOption: 'pdf_only' | 'pdf_and_book') => {
+  const handleDownload = async (storyId: string, downloadOption: "pdf_only" | "pdf_and_book") => {
     try {
       const session: any = await fetchAuthSession()
       const token = session?.tokens?.idToken?.toString()
@@ -187,7 +305,7 @@ const MyStories: React.FC = () => {
         return
       }
 
-      const story = stories.find(s => s.storyId === storyId)
+      const story = stories.find((s) => s.storyId === storyId)
       if (!story) {
         toast({
           title: "Error",
@@ -197,34 +315,31 @@ const MyStories: React.FC = () => {
         return
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/export-pdf`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      )
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/stories/${storyId}/export-pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
 
       if (!response.ok) {
-        const errorText = await response.text()
+        await response.text()
         throw new Error(`Download failed: ${response.status} ${response.statusText}`)
       }
 
-      const contentType = response.headers.get('content-type')
+      const contentType = response.headers.get("content-type")
 
-      if (contentType?.includes('application/json')) {
+      if (contentType?.includes("application/json")) {
         const jsonData = await response.json()
 
         if (jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl) {
           const downloadUrl = jsonData.downloadUrl || jsonData.url || jsonData.pdfUrl
 
-          const link = document.createElement('a')
+          const link = document.createElement("a")
           link.href = downloadUrl
-          link.download = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
-          link.target = '_blank'
+          link.download = `${story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"}_${downloadOption}.pdf`
+          link.target = "_blank"
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
@@ -239,14 +354,14 @@ const MyStories: React.FC = () => {
         throw new Error(jsonData.message || "No download URL provided")
       }
 
-      if (contentType?.includes('application/pdf')) {
+      if (contentType?.includes("application/pdf")) {
         const blob = await response.blob()
 
         const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
+        const link = document.createElement("a")
         link.href = url
 
-        const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Story'}_${downloadOption}.pdf`
+        const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"}_${downloadOption}.pdf`
         link.download = filename
 
         document.body.appendChild(link)
@@ -264,7 +379,6 @@ const MyStories: React.FC = () => {
       }
 
       throw new Error("Unsupported response format")
-
     } catch (error: any) {
       toast({
         title: "Download Failed",
@@ -274,12 +388,10 @@ const MyStories: React.FC = () => {
     }
   }
 
-  const isPurchased = (story: Story, option: 'pdf_only' | 'pdf_and_book') => {
+  const isPurchased = (story: Story, option: "pdf_only" | "pdf_and_book") => {
     if (story.downloadHistory && Array.isArray(story.downloadHistory)) {
       const purchasedOption = story.downloadHistory.find(
-        item => item.downloadOption === option &&
-          item.status === "paid" &&
-          item.downloadable === "Yes"
+        (item) => item.downloadOption === option && item.status === "paid" && item.downloadable === "Yes"
       )
       if (purchasedOption) return true
     }
@@ -291,8 +403,8 @@ const MyStories: React.FC = () => {
     return isDownloadable && isPaid && optionMatches
   }
 
-  const isPurchaseLoading = (storyId: string, option: 'pdf_only' | 'pdf_and_book') => {
-    return purchaseLoading[storyId]?.[option === 'pdf_only' ? 'pdf' : 'book'] || false
+  const isPurchaseLoading = (storyId: string, option: "pdf_only" | "pdf_and_book") => {
+    return purchaseLoading[storyId]?.[option === "pdf_only" ? "pdf" : "book"] || false
   }
 
   const openPreviewModal = async (storyId: string) => {
@@ -338,39 +450,39 @@ const MyStories: React.FC = () => {
   }
 
   const handleStoryDeleted = (deletedStoryId: string) => {
-    setStories(prevStories => prevStories.filter(story => story.storyId !== deletedStoryId))
+    setStories((prevStories) => prevStories.filter((story) => story.storyId !== deletedStoryId))
   }
 
-  const handleDownloadOptionSelect = (storyId: string, option: 'pdf_only' | 'pdf_and_book') => {
-    setSelectedDownloadOption(prev => ({
+  const handleDownloadOptionSelect = (storyId: string, option: "pdf_only" | "pdf_and_book") => {
+    setSelectedDownloadOption((prev) => ({
       ...prev,
-      [storyId]: option
+      [storyId]: option,
     }))
   }
 
   const getSelectedOption = (story: Story) => {
-    const pdfPurchased = isPurchased(story, 'pdf_only')
-    const bookPurchased = isPurchased(story, 'pdf_and_book')
+    const pdfPurchased = isPurchased(story, "pdf_only")
+    const bookPurchased = isPurchased(story, "pdf_and_book")
 
     if (selectedDownloadOption[story.storyId]) {
       return selectedDownloadOption[story.storyId]
     }
 
-    if (bookPurchased) return 'pdf_and_book'
-    if (pdfPurchased) return 'pdf_only'
+    if (bookPurchased) return "pdf_and_book"
+    if (pdfPurchased) return "pdf_only"
 
-    return 'pdf_only'
+    return "pdf_only"
   }
 
   const handleStoryUpdate = (updatedStory: StoryDetails) => {
-    setStories(prevStories =>
-      prevStories.map(story =>
+    setStories((prevStories) =>
+      prevStories.map((story) =>
         story.storyId === updatedStory.storyId
           ? {
-            ...story,
-            title: updatedStory.title,
-            coverImageUrl: updatedStory.coverImageUrl
-          }
+              ...story,
+              title: updatedStory.title,
+              coverImageUrl: updatedStory.coverImageUrl,
+            }
           : story
       )
     )
@@ -392,8 +504,27 @@ const MyStories: React.FC = () => {
         </p>
       </div>
     ),
-    [],
+    []
   )
+
+  const calcTotal = (form: BookPurchaseForm | null) => {
+    if (!form) return 0
+    const book = PAGE_PRICES[form.pageOption]
+    const shipping = SHIPPING_PRICES[form.shipping].price
+    return book + shipping
+  }
+
+  const isAddressValid = (addr: ShippingAddress) => {
+    return (
+      addr.name.trim() &&
+      addr.street1.trim() &&
+      addr.city.trim() &&
+      addr.state_code.trim() &&
+      addr.postcode.trim() &&
+      addr.country_code.trim() &&
+      addr.phone_number.trim()
+    )
+  }
 
   if (loading) {
     return (
@@ -434,14 +565,17 @@ const MyStories: React.FC = () => {
       ) : (
         <div className="flex flex-wrap gap-[44px] justify-center xl:justify-start">
           {stories.map((story) => {
-            const pdfPurchased = isPurchased(story, 'pdf_only')
-            const bookPurchased = isPurchased(story, 'pdf_and_book')
-            const pdfLoading = isPurchaseLoading(story.storyId, 'pdf_only')
-            const bookLoading = isPurchaseLoading(story.storyId, 'pdf_and_book')
+            const pdfPurchased = isPurchased(story, "pdf_only")
+            const bookPurchased = isPurchased(story, "pdf_and_book")
+            const pdfLoading = isPurchaseLoading(story.storyId, "pdf_only")
+            const bookLoading = isPurchaseLoading(story.storyId, "pdf_and_book")
             const selectedOption = getSelectedOption(story)
 
             return (
-              <div key={story.storyId} className="rounded-[20px] border border-[#CCD8D3] bg-[#F4F3F7] w-[497px] shadow-sm overflow-hidden">
+              <div
+                key={story.storyId}
+                className="rounded-[20px] border border-[#CCD8D3] bg-[#F4F3F7] w-[497px] shadow-sm overflow-hidden relative"
+              >
                 <div className="relative w-full overflow-hidden rounded-2xl">
                   <div className="relative h-[340px] w-full">
                     <img
@@ -459,33 +593,29 @@ const MyStories: React.FC = () => {
                   </div>
                 </div>
 
-
                 <div className="p-6">
                   <h3 className="text-[24px] font-bold font-display text-[#333333] mb-4 leading-tight">
                     {story.title}
                   </h3>
 
-                  <p className="text-[14px] text-[#8C5AF2] italic mb-4 font-medium">
-                    Select Download Option
-                  </p>
+                  <p className="text-[14px] text-[#8C5AF2] italic mb-4 font-medium">Select Download Option</p>
 
                   <div className="space-y-3 mb-6">
+                    {/* PDF ONLY */}
                     <div
-                      onClick={() => pdfPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_only')}
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${pdfPurchased && selectedOption === 'pdf_only'
-                        ? 'border-[#8C5AF2] bg-[#F8F6FF]'
-                        : pdfPurchased
-                          ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
-                          : 'border-[#E5E5E5] bg-white cursor-default'
-                        }`}>
+                      onClick={() => pdfPurchased && handleDownloadOptionSelect(story.storyId, "pdf_only")}
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
+                        pdfPurchased && selectedOption === "pdf_only"
+                          ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                          : pdfPurchased
+                            ? "border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50"
+                            : "border-[#E5E5E5] bg-white cursor-default"
+                      }`}
+                    >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1">
-                          <span className="text-[14px] text-[#333333] font-medium">
-                            Downloadable PDF Only -
-                          </span>
-                          <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">
-                            $2.99
-                          </span>
+                          <span className="text-[14px] text-[#333333] font-medium">Downloadable PDF Only .</span>
+                          <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">$2.99</span>
                         </div>
                       </div>
 
@@ -498,7 +628,7 @@ const MyStories: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              handlePurchase(story.storyId, 'pdf_only')
+                              handlePurchase(story.storyId, "pdf_only")
                             }}
                             disabled={pdfLoading}
                             className="text-[#8C5AF2] underline text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -509,21 +639,24 @@ const MyStories: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* PDF + BOOK */}
                     <div
-                      onClick={() => bookPurchased && handleDownloadOptionSelect(story.storyId, 'pdf_and_book')}
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${bookPurchased && selectedOption === 'pdf_and_book'
-                        ? 'border-[#8C5AF2] bg-[#F8F6FF]'
-                        : bookPurchased
-                          ? 'border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50'
-                          : 'border-[#E5E5E5] bg-white cursor-default'
-                        }`}>
+                      onClick={() => bookPurchased && handleDownloadOptionSelect(story.storyId, "pdf_and_book")}
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
+                        bookPurchased && selectedOption === "pdf_and_book"
+                          ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                          : bookPurchased
+                            ? "border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50"
+                            : "border-[#E5E5E5] bg-white cursor-default"
+                      }`}
+                    >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1 w-full max-w-[249px]">
                           <span className="text-[14px] text-[#333333] font-medium">
-                            Downloadable PDF + Professionally Printed Book -
+                            Downloadable PDF + Professionally Printed Book
                           </span>
-                          <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">
-                            Higher Price (TBD)
+                          <span className="text-[12px] text-slate-500 block mt-1">
+                            Choose pages and shipping on checkout.
                           </span>
                         </div>
                       </div>
@@ -537,7 +670,7 @@ const MyStories: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              handlePurchase(story.storyId, 'pdf_and_book')
+                              void openBookForm(story)
                             }}
                             disabled={bookLoading}
                             className="text-[#8C5AF2] underline text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -550,14 +683,12 @@ const MyStories: React.FC = () => {
                   </div>
 
                   {!pdfPurchased && !bookPurchased && (
-                    <p className="text-[14px] text-[#8C5AF2] italic mb-6 font-medium">
-                      Purchase required to download
-                    </p>
+                    <p className="text-[14px] text-[#8C5AF2] italic mb-6 font-medium">Purchase required to download</p>
                   )}
 
                   {(pdfPurchased || bookPurchased) && (
                     <p className="text-[14px] text-[#8C5AF2] italic mb-6 font-medium">
-                      {selectedOption === 'pdf_and_book' ? "Download PDF + Printed Book" : "Download PDF Only"}
+                      {selectedOption === "pdf_and_book" ? "Download PDF + Printed Book" : "Download PDF Only"}
                     </p>
                   )}
 
@@ -584,6 +715,7 @@ const MyStories: React.FC = () => {
         </div>
       )}
 
+      {/* STORY PREVIEW */}
       <StoryPreviewModal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -594,13 +726,278 @@ const MyStories: React.FC = () => {
         onStoryUpdate={handleStoryUpdate}
       />
 
+      {/* DELETE MODAL */}
       <DeleteStoryModal
         isOpen={deleteModalOpen}
         onClose={closeDeleteModal}
-        storyId={storyToDelete?.id || ''}
-        storyTitle={storyToDelete?.title || ''}
+        storyId={storyToDelete?.id || ""}
+        storyTitle={storyToDelete?.title || ""}
         onDelete={handleStoryDeleted}
       />
+
+      {/* BOOK PURCHASE FORM MODAL */}
+      {showBookFormFor && bookForm && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-[580px] rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Customize your printed book</h2>
+                <p className="text-sm text-slate-500">Pick pages, shipping, and delivery address.</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowBookFormFor(null)
+                  setBookForm(null)
+                }}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="pb-5 space-y-5">
+              {/* Pages */}
+              <div>
+                <p className="text-sm font-medium text-slate-700 mb-2">Page count</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {(["10", "15", "20"] as Array<"10" | "15" | "20">).map((p) => {
+                    const isSelected = bookForm.pageOption === p
+                    return (
+                      <button
+                        key={p}
+                        disabled={!isSelected}
+                        onClick={() => {
+                          if (!isSelected) return
+                        }}
+                        className={`rounded-xl border p-3 text-left transition ${
+                          isSelected
+                            ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                            : "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+                        }`}
+                      >
+                        <p className="text-sm font-semibold">{p} pages</p>
+                        <p className="text-xs mt-1">${PAGE_PRICES[p].toFixed(2)}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Shipping method */}
+              <div>
+                <p className="text-sm font-medium text-slate-700 mb-2">Shipping</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() =>
+                      setBookForm((prev) => (prev ? { ...prev, shipping: "standard" } : prev))
+                    }
+                    className={`rounded-xl border p-3 text-left transition ${
+                      bookForm.shipping === "standard"
+                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                        : "border-slate-200 bg-white hover:border-[#8C5AF2]/50"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-slate-900">Standard</p>
+                    <p className="text-xs text-slate-500">
+                      ${SHIPPING_PRICES.standard.price.toFixed(2)} . {SHIPPING_PRICES.standard.eta}
+                    </p>
+                  </button>
+                  <button
+                    onClick={() =>
+                      setBookForm((prev) => (prev ? { ...prev, shipping: "express" } : prev))
+                    }
+                    className={`rounded-xl border p-3 text-left transition ${
+                      bookForm.shipping === "express"
+                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                        : "border-slate-200 bg-white hover:border-[#8C5AF2]/50"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-slate-900">Express</p>
+                    <p className="text-xs text-slate-500">
+                      ${SHIPPING_PRICES.express.price.toFixed(2)} . {SHIPPING_PRICES.express.eta}
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* ADDRESS SECTION */}
+              <div className="border-t border-slate-200 pt-4">
+                <p className="text-sm font-medium text-slate-700 mb-3">Shipping address</p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Full name</label>
+                    <input
+                      type="text"
+                      value={bookForm.shipping_address.name}
+                      onChange={(e) =>
+                        setBookForm((prev) =>
+                          prev
+                            ? { ...prev, shipping_address: { ...prev.shipping_address, name: e.target.value } }
+                            : prev
+                        )
+                      }
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Address line 1</label>
+                    <input
+                      type="text"
+                      value={bookForm.shipping_address.street1}
+                      onChange={(e) =>
+                        setBookForm((prev) =>
+                          prev
+                            ? { ...prev, shipping_address: { ...prev.shipping_address, street1: e.target.value } }
+                            : prev
+                        )
+                      }
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Address line 2 . optional</label>
+                    <input
+                      type="text"
+                      value={bookForm.shipping_address.street2}
+                      onChange={(e) =>
+                        setBookForm((prev) =>
+                          prev
+                            ? { ...prev, shipping_address: { ...prev.shipping_address, street2: e.target.value } }
+                            : prev
+                        )
+                      }
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-slate-500 mb-1 block">City</label>
+                      <input
+                        type="text"
+                        value={bookForm.shipping_address.city}
+                        onChange={(e) =>
+                          setBookForm((prev) =>
+                            prev
+                              ? { ...prev, shipping_address: { ...prev.shipping_address, city: e.target.value } }
+                              : prev
+                          )
+                        }
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500 mb-1 block">State/Province</label>
+                      <input
+                        type="text"
+                        value={bookForm.shipping_address.state_code}
+                        onChange={(e) =>
+                          setBookForm((prev) =>
+                            prev
+                              ? { ...prev, shipping_address: { ...prev.shipping_address, state_code: e.target.value } }
+                              : prev
+                          )
+                        }
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-slate-500 mb-1 block">Postal/ZIP code</label>
+                      <input
+                        type="text"
+                        value={bookForm.shipping_address.postcode}
+                        onChange={(e) =>
+                          setBookForm((prev) =>
+                            prev
+                              ? { ...prev, shipping_address: { ...prev.shipping_address, postcode: e.target.value } }
+                              : prev
+                          )
+                        }
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500 mb-1 block">Country code</label>
+                      <input
+                        type="text"
+                        value={bookForm.shipping_address.country_code}
+                        onChange={(e) =>
+                          setBookForm((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  shipping_address: { ...prev.shipping_address, country_code: e.target.value },
+                                }
+                              : prev
+                          )
+                        }
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Phone</label>
+                    <input
+                      type="tel"
+                      value={bookForm.shipping_address.phone_number}
+                      onChange={(e) =>
+                        setBookForm((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                shipping_address: { ...prev.shipping_address, phone_number: e.target.value },
+                              }
+                            : prev
+                        )
+                      }
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="bg-slate-50 rounded-xl p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500">Total</p>
+                  <p className="text-lg font-semibold text-slate-900">${calcTotal(bookForm).toFixed(2)}</p>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Includes story printing + {SHIPPING_PRICES[bookForm.shipping].label} shipping.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                className="w-full h-11 rounded-xl bg-[#8C5AF2] text-white font-semibold hover:bg-[#7C4AE8] transition disabled:opacity-60"
+                disabled={!isAddressValid(bookForm.shipping_address)}
+                onClick={() => {
+                  if (!bookForm) return
+
+                  if (!isAddressValid(bookForm.shipping_address)) {
+                    toast({
+                      title: "Address incomplete",
+                      description: "Please fill all required fields.",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+
+                  handlePurchase(bookForm.storyId, "pdf_and_book", {
+                    pageOption: bookForm.pageOption,
+                    shipping: bookForm.shipping,
+                    shipping_address: bookForm.shipping_address,
+                  })
+                  setShowBookFormFor(null)
+                  setBookForm(null)
+                }}
+              >
+                Continue to payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
