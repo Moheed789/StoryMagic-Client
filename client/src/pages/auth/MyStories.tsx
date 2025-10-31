@@ -660,6 +660,14 @@ const MyStories: React.FC = () => {
     );
   };
 
+  const formatUSPhone = (digits: string) => {
+    if (!digits) return "";
+    const d = digits.replace(/\D/g, "").slice(0, 10);
+    if (d.length <= 3) return `(${d}`;
+    if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  };
+
   if (loading) {
     return (
       <div className="max-w-[1579px] mx-auto px-4 py-10">
@@ -912,9 +920,7 @@ const MyStories: React.FC = () => {
                 <h2 className="text-lg font-semibold text-slate-900">
                   Customize your printed book
                 </h2>
-                <p className="text-sm text-slate-500">
-                  Pick pages, shipping, and delivery address.
-                </p>
+               
               </div>
               <button
                 onClick={() => {
@@ -1181,26 +1187,20 @@ const MyStories: React.FC = () => {
                       <label className="text-xs text-slate-500 mb-1 block">
                         Country
                       </label>
-                      <input
-                        type="text"
-                        value={bookForm.shipping_address.country_code}
-                        onChange={(e) =>
-                          setBookForm((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  shipping_address: {
-                                    ...prev.shipping_address,
-                                    country_code: e.target.value,
-                                  },
-                                }
-                              : prev
-                          )
-                        }
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                        placeholder="US"
-                        readOnly
-                      />
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 bg-white w-full">
+                          <span className="text-lg">🇺🇸</span>
+                          <div className="text-sm text-slate-700">United States</div>
+                          <div className="ml-auto text-xs text-slate-500">US</div>
+                        </div>
+                        {/* keep country_code in state but readOnly */}
+                        <input
+                          type="hidden"
+                          value={bookForm.shipping_address.country_code}
+                          readOnly
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -1208,25 +1208,34 @@ const MyStories: React.FC = () => {
                     <label className="text-xs text-slate-500 mb-1 block">
                       Phone
                     </label>
-                    <input
-                      type="tel"
-                      value={bookForm.shipping_address.phone_number}
-                      onChange={(e) =>
-                        setBookForm((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                shipping_address: {
-                                  ...prev.shipping_address,
-                                  phone_number: e.target.value,
-                                },
-                              }
-                            : prev
-                        )
-                      }
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                      placeholder="Enter phone number"
-                    />
+
+                    {/* Phone with fixed +1 prefix; store digits only */}
+                    <div className="flex">
+                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-200 bg-slate-50 text-sm">
+                        +1
+                      </span>
+                      <input
+                        type="tel"
+                        value={formatUSPhone(bookForm.shipping_address.phone_number)}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/\D/g, "").slice(0, 10); // digits only, max 10
+                          setBookForm((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  shipping_address: {
+                                    ...prev.shipping_address,
+                                    phone_number: raw,
+                                  },
+                                }
+                              : prev
+                          );
+                        }}
+                        className="w-full rounded-r-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
+                        placeholder="(123) 456-7890"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">Enter 10-digit US phone number</p>
                   </div>
                 </div>
               </div>
