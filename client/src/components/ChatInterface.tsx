@@ -172,7 +172,7 @@ export default function ChatInterface({
       const title = safeTrim(storyTitle);
       const author = safeTrim(authorName);
       if (title) payload.title = title;
-      if (author) payload.author = author;
+      if (author) payload.authorName = author;
 
       const res = await fetch(API_URL, {
         method: "POST",
