@@ -1,5 +1,5 @@
 import { X } from "lucide-react"
-import React from "react"
+import React, { useEffect } from "react"
 
 interface ModalProps {
     isOpen: boolean
@@ -20,6 +20,25 @@ const Modal: React.FC<ModalProps> = ({
     showCloseButton = true,
     className = ""
 }) => {
+    useEffect(() => {
+        if (isOpen) {
+            const scrollY = window.scrollY;
+
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+
+            return () => {
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.body.style.width = '';
+                document.body.style.overflow = '';
+                window.scrollTo(0, scrollY);
+            };
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null
 
     return (

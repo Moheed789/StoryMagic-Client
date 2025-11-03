@@ -320,31 +320,31 @@ export default function ChatInterface({
         className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col"
         id="bottom"
       >
-        <div className="p-4 border-b border-card-border">
+        <div className="p-3 sm:p-4 border-b border-card-border">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
-              <SparklesIcon className="h-4 w-4 text-primary-foreground" />
+            <div className="h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center flex-shrink-0">
+              <SparklesIcon className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
             </div>
-            <div>
-              <h3 className="font-semibold">Story Assistant</h3>
-              <p className="text-xs text-muted-foreground">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base">Story Assistant</h3>
+              <p className="text-xs text-muted-foreground truncate">
                 Let's create your storybook together
               </p>
             </div>
           </div>
         </div>
 
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+        <ScrollArea className="flex-1 p-2 sm:p-4">
+          <div className="space-y-3 sm:space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${
+                className={`flex gap-2 sm:gap-3 ${
                   message.isUser ? "flex-row-reverse" : "flex-row"
                 }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     message.isUser
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
@@ -357,12 +357,12 @@ export default function ChatInterface({
                   )}
                 </div>
                 <div
-                  className={`max-w-[80%] ${
+                  className={`max-w-[85%] sm:max-w-[80%] ${
                     message.isUser ? "text-right" : "text-left"
                   }`}
                 >
                   <div
-                    className={`inline-block p-3 rounded-lg font-story ${
+                    className={`inline-block p-2 sm:p-3 rounded-lg font-story text-sm sm:text-base ${
                       message.isUser
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground"
@@ -385,7 +385,7 @@ export default function ChatInterface({
                 <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
                   <SparklesIcon className="h-4 w-4 animate-pulse" />
                 </div>
-                <div className="bg-muted text-muted-foreground p-3 rounded-lg">
+                <div className="bg-muted text-muted-foreground p-2 sm:p-3 rounded-lg max-w-[85%] sm:max-w-[80%]">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
                       <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
@@ -398,7 +398,7 @@ export default function ChatInterface({
                         style={{ animationDelay: "0.2s" }}
                       ></div>
                     </div>
-                    <span className="text-sm">
+                    <span className="text-xs sm:text-sm">
                       Creating your magical story...
                     </span>
                   </div>
@@ -408,79 +408,46 @@ export default function ChatInterface({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-card-border">
+        <div className="p-3 sm:p-4 border-t border-card-border">
           <div className="space-y-3">
-            <div className="flex items-center gap-6">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
-                    <Label htmlFor="page-count" className="text-sm font-medium">
-                      Story Length:
-                    </Label>
-                  </div>
-
-                  {/* <Select
-                    value={
-                      selectedPageCount !== null
-                        ? String(selectedPageCount)
-                        : undefined
-                    }
-                    onValueChange={(v) => {
-                      setSelectedPageCount(Number(v));
-                      setError(null);
-                    }}
-                    disabled={createStoryMutation.isPending}
-                  >
-                    <SelectTrigger
-                      id="page-count"
-                      data-testid="select-page-count"
-                      className="w-32"
-                    >
-                      <SelectValue  />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10 pages</SelectItem>
-                      <SelectItem value="15">15 pages</SelectItem>
-                      <SelectItem value="20">20 pages</SelectItem>
-                    </SelectContent>
-                  </Select> */}
-
-                  <Select
-                    value={
-                      selectedPageCount !== null
-                        ? String(selectedPageCount)
-                        : undefined
-                    }
-                    onValueChange={(v) => {
-                      setSelectedPageCount(Number(v));
-                      setError(null);
-                    }}
-                    disabled={createStoryMutation.isPending}
-                  >
-                    <SelectTrigger
-                      id="page-count"
-                      data-testid="select-page-count"
-                      className="w-40"
-                    >
-                      <SelectValue placeholder="Select pages" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="10">10 pages</SelectItem>
-                      <SelectItem value="15">15 pages</SelectItem>
-                      <SelectItem value="20">20 pages</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="page-count" className="text-sm font-medium whitespace-nowrap">
+                    Story Length:
+                  </Label>
                 </div>
 
-                {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+                <Select
+                  value={
+                    selectedPageCount !== null
+                      ? String(selectedPageCount)
+                      : undefined
+                  }
+                  onValueChange={(v) => setSelectedPageCount(Number(v))}
+                  disabled={createStoryMutation.isPending}
+                >
+                  <SelectTrigger
+                    id="page-count"
+                    data-testid="select-page-count"
+                    className="w-full sm:w-32 min-w-[120px]"
+                  >
+                    <SelectValue placeholder="Select pages" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 pages</SelectItem>
+                    <SelectItem value="15">15 pages</SelectItem>
+                    <SelectItem value="20">20 pages</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
+              {/* Target Age */}
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="target-age" className="text-sm font-medium">
+                  <Label htmlFor="target-age" className="text-sm font-medium whitespace-nowrap">
                     Target Age:
                   </Label>
                 </div>
@@ -493,7 +460,7 @@ export default function ChatInterface({
                   <SelectTrigger
                     id="target-age"
                     data-testid="select-target-age"
-                    className="w-40"
+                    className="w-full sm:w-40 min-w-[140px]"
                   >
                     <SelectValue placeholder="Select age" />
                   </SelectTrigger>

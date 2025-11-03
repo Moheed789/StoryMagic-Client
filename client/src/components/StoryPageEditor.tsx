@@ -74,7 +74,7 @@ export default function StoryPageEditor({
         await handleSaveInternal();
         return true;
       } catch (error) {
-        console.error("Auto-save failed:", error);
+        console.error(error);
         return false;
       }
     };
@@ -285,7 +285,7 @@ export default function StoryPageEditor({
 
       await persistImageUrl(imageUrl);
     } catch (e: any) {
-      console.error("❌ Image regeneration failed:", e?.message || e);
+      console.error(e?.message || e);
       setError(e?.message || "Failed to regenerate image");
     } finally {
       setIsGenerating(false);

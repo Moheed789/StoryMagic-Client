@@ -7,9 +7,12 @@ export default function StoryPreviewExample() {
     id: '1',
     title: 'The Magical Forest Adventure',
     author: 'Sarah & Emma',
+    status: 'completed' as const,
+    totalPages: 3,
     pages: [
       {
         id: '1',
+        storyId: '1',
         pageNumber: 1,
         text: 'Once upon a time, in a magical forest filled with talking animals and sparkling streams, there lived a brave little rabbit named Benny. Benny had the softest brown fur and the biggest, kindest heart in all the woodland.',
         imagePrompt: 'A cute cartoon rabbit with brown fur wearing a red vest, standing in a magical forest',
@@ -17,6 +20,7 @@ export default function StoryPreviewExample() {
       },
       {
         id: '2',
+        storyId: '1',
         pageNumber: 2,
         text: 'One sunny morning, Benny heard a cry for help echoing through the trees. "Someone needs my help!" he said, hopping quickly toward the sound. His little heart was beating fast with excitement and worry.',
         imagePrompt: 'The rabbit looking concerned and alert, hopping through sunny forest paths',
@@ -24,6 +28,7 @@ export default function StoryPreviewExample() {
       },
       {
         id: '3',
+        storyId: '1',
         pageNumber: 3,
         text: 'Deep in the forest, Benny found a family of field mice trapped under a fallen branch. "Don\'t worry," said Benny bravely, "I\'ll help you!" He pushed and pushed with all his might until the branch rolled away.',
         imagePrompt: 'The rabbit helping mice trapped under a fallen branch in the forest',
