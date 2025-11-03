@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import DeleteStoryModal from "../../components/DeleteStoryModal";
 import StoryPreviewModal from "../../components/StoryPreviewModal";
-import { Check, Trash, X } from "lucide-react";
+import UnlockPreviewsModal from "../../components/UnlockPreviewsModal";
+import BookCustomizationModal from "../../components/BookCustomizationModal";
+import { Check, Trash, X, Loader } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
-// @ts-ignore: No types available for mockData.js
-import { US_STATES, MAJOR_US_CITIES } from "../../utils/mockData";
 
 type Story = {
   storyId: string;
@@ -101,11 +101,18 @@ const MyStories: React.FC = () => {
   const [purchaseLoading, setPurchaseLoading] = useState<{
     [storyId: string]: { pdf?: boolean; book?: boolean };
   }>({});
+  const [downloadLoading, setDownloadLoading] = useState<{
+    [storyId: string]: boolean;
+  }>({});
   const [selectedDownloadOption, setSelectedDownloadOption] = useState<{
     [storyId: string]: "pdf_only" | "pdf_and_book";
   }>({});
   const [showBookFormFor, setShowBookForm] = useState<string | null>(null);
   const [bookForm, setBookForm] = useState<BookPurchaseForm | null>(null);
+
+  const [storyPreviewCounts, setStoryPreviewCounts] = useState<{ [storyId: string]: number }>({});
+  const [previewsPurchased, setPreviewsPurchased] = useState<boolean>(false);
+  const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
 
   useEffect(() => {
     const loadStories = async () => {
@@ -129,6 +136,17 @@ const MyStories: React.FC = () => {
           setStories(data);
         } else {
           setStories([]);
+        }
+
+        const savedStoryPreviewCounts = localStorage.getItem("storyPreviewCounts");
+        const savedPreviewsPurchased = localStorage.getItem("previewsPurchased");
+
+        if (savedStoryPreviewCounts) {
+          setStoryPreviewCounts(JSON.parse(savedStoryPreviewCounts));
+        }
+
+        if (savedPreviewsPurchased === "true") {
+          setPreviewsPurchased(true);
         }
       } catch (err: any) {
         setError(err?.message || "Something went wrong");
@@ -399,6 +417,8 @@ const MyStories: React.FC = () => {
     storyId: string,
     downloadOption: "pdf_only" | "pdf_and_book"
   ) => {
+    setDownloadLoading(prev => ({ ...prev, [storyId]: true }));
+
     try {
       const session: any = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
@@ -451,9 +471,8 @@ const MyStories: React.FC = () => {
 
           const link = document.createElement("a");
           link.href = downloadUrl;
-          link.download = `${
-            story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
-          }_${downloadOption}.pdf`;
+          link.download = `${story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
+            }_${downloadOption}.pdf`;
           link.target = "_blank";
           document.body.appendChild(link);
           link.click();
@@ -464,6 +483,8 @@ const MyStories: React.FC = () => {
             description: "Your story download has begun",
             variant: "default",
           });
+
+          setDownloadLoading(prev => ({ ...prev, [storyId]: false }));
           return;
         }
         throw new Error(jsonData.message || "No download URL provided");
@@ -476,9 +497,8 @@ const MyStories: React.FC = () => {
         const link = document.createElement("a");
         link.href = url;
 
-        const filename = `${
-          story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
-        }_${downloadOption}.pdf`;
+        const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
+          }_${downloadOption}.pdf`;
         link.download = filename;
 
         document.body.appendChild(link);
@@ -492,6 +512,8 @@ const MyStories: React.FC = () => {
           description: "Your story has been downloaded successfully",
           variant: "default",
         });
+
+        setDownloadLoading(prev => ({ ...prev, [storyId]: false }));
         return;
       }
 
@@ -502,6 +524,8 @@ const MyStories: React.FC = () => {
         description: `Download failed: ${error.message}`,
         variant: "destructive",
       });
+    } finally {
+      setDownloadLoading(prev => ({ ...prev, [storyId]: false }));
     }
   };
 
@@ -534,6 +558,12 @@ const MyStories: React.FC = () => {
   };
 
   const openPreviewModal = async (storyId: string) => {
+    const currentStoryPreviewCount = storyPreviewCounts[storyId] || 0;
+    if (!previewsPurchased && currentStoryPreviewCount >= 3) {
+      setShowUnlockModal(true);
+      return;
+    }
+
     setModalLoading(true);
     setIsModalOpen(true);
     setCurrentPage(0);
@@ -555,11 +585,102 @@ const MyStories: React.FC = () => {
       if (!res.ok) throw new Error("Failed to fetch story");
       const data = await res.json();
       setModalStory(data);
+
+      if (!previewsPurchased) {
+        const newStoryPreviewCounts = {
+          ...storyPreviewCounts,
+          [storyId]: currentStoryPreviewCount + 1
+        };
+        setStoryPreviewCounts(newStoryPreviewCounts);
+        localStorage.setItem("storyPreviewCounts", JSON.stringify(newStoryPreviewCounts));
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setModalLoading(false);
     }
+  };
+
+
+
+  const getPreviewButtonState = (storyId: string) => {
+    const currentStoryPreviewCount = storyPreviewCounts[storyId] || 0;
+
+    if (previewsPurchased) {
+      return {
+        text: "Preview",
+        disabled: false,
+        className: "w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition"
+      };
+    }
+
+    if (currentStoryPreviewCount < 3) {
+      return {
+        text: "Preview",
+        disabled: false,
+        className: "w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition"
+      };
+    }
+
+    return {
+      text: "Preview",
+      disabled: true,
+      className: "w-full h-10 rounded-md text-slate-400 text-[16px] font-semibold cursor-not-allowed bg-slate-100"
+    };
+  };
+
+  const getPreviewStatusText = (storyId: string) => {
+    const currentStoryPreviewCount = storyPreviewCounts[storyId] || 0;
+    const previewsLeft = Math.max(0, 3 - currentStoryPreviewCount);
+
+    if (previewsPurchased) {
+      return (
+        <div className="text-center mt-2">
+          <span className="text-[14px] text-green-600 font-medium">
+            Previews Purchased ✓
+          </span>
+        </div>
+      );
+    }
+
+    if (previewsLeft > 0) {
+      return (
+        <div>
+          <p className="text-[14px] text-[#6F677E]  flex items-center gap-2 justify-end">
+            Free Previews:
+            <span className="text-[#34C759] font-medium">{previewsLeft} Left</span>
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-between">
+
+        <div >
+          <span className="text-[14px] text-red-500 font-medium">
+            Limit Reached
+          </span>
+          <button
+            onClick={() => setShowUnlockModal(true)}
+            className="ml-2 text-[14px] text-[#8C5AF2] underline font-medium hover:text-[#7C4AE8]"
+          >
+            Unlock Previews
+          </button>
+        </div>
+        <div>
+          <p className="text-[14px] text-[#6F677E] flex items-center gap-2">
+            Free previews:
+            <span className="text-[#34C759] font-medium">
+              {3 - (storyPreviewCounts[storyId] || 0)} left </span>
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
@@ -613,10 +734,10 @@ const MyStories: React.FC = () => {
       prevStories.map((story) =>
         story.storyId === updatedStory.storyId
           ? {
-              ...story,
-              title: updatedStory.title,
-              coverImageUrl: updatedStory.coverImageUrl,
-            }
+            ...story,
+            title: updatedStory.title,
+            coverImageUrl: updatedStory.coverImageUrl,
+          }
           : story
       )
     );
@@ -718,6 +839,7 @@ const MyStories: React.FC = () => {
               "pdf_and_book"
             );
             const selectedOption = getSelectedOption(story);
+            const previewButtonState = getPreviewButtonState(story.storyId);
 
             return (
               <div
@@ -756,19 +878,17 @@ const MyStories: React.FC = () => {
                   </p>
 
                   <div className="space-y-3 mb-6">
-                    {/* PDF ONLY */}
                     <div
                       onClick={() =>
                         pdfPurchased &&
                         handleDownloadOptionSelect(story.storyId, "pdf_only")
                       }
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
-                        pdfPurchased && selectedOption === "pdf_only"
-                          ? "border-[#8C5AF2] bg-[#F8F6FF]"
-                          : pdfPurchased
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${pdfPurchased && selectedOption === "pdf_only"
+                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                        : pdfPurchased
                           ? "border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50"
                           : "border-[#E5E5E5] bg-white cursor-default"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1">
@@ -801,7 +921,6 @@ const MyStories: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* PDF + BOOK */}
                     <div
                       onClick={() =>
                         bookPurchased &&
@@ -810,13 +929,12 @@ const MyStories: React.FC = () => {
                           "pdf_and_book"
                         )
                       }
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
-                        bookPurchased && selectedOption === "pdf_and_book"
-                          ? "border-[#8C5AF2] bg-[#F8F6FF]"
-                          : bookPurchased
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${bookPurchased && selectedOption === "pdf_and_book"
+                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                        : bookPurchased
                           ? "border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50"
                           : "border-[#E5E5E5] bg-white cursor-default"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1 w-full max-w-[249px]">
@@ -869,20 +987,32 @@ const MyStories: React.FC = () => {
                       onClick={() =>
                         handleDownload(story.storyId, selectedOption)
                       }
-                      disabled={!pdfPurchased && !bookPurchased}
-                      className="w-full h-[48px] rounded-[12px] bg-[#8C5AF2] text-white text-[16px] font-semibold hover:bg-[#7C4AE8] transition disabled:bg-[#CCCCCC] disabled:cursor-not-allowed"
+                      disabled={(!pdfPurchased && !bookPurchased) || downloadLoading[story.storyId]}
+                      className="w-full h-[48px] rounded-[12px] bg-[#8C5AF2] text-white text-[16px] font-semibold hover:bg-[#7C4AE8] transition disabled:bg-[#CCCCCC] disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      {!pdfPurchased && !bookPurchased
-                        ? "Purchase Required"
-                        : "Download"}
+                      {downloadLoading[story.storyId] ? (
+                        <>
+                          <Loader className="h-4 w-4 animate-spin" />
+                          Downloading...
+                        </>
+                      ) : (
+                        <>
+                          {!pdfPurchased && !bookPurchased
+                            ? "Purchase Required"
+                            : "Download"}
+                        </>
+                      )}
                     </button>
 
                     <button
                       onClick={() => openPreviewModal(story.storyId)}
-                      className="w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition"
+                      disabled={previewButtonState.disabled}
+                      className={previewButtonState.className}
                     >
-                      Preview
+                      {previewButtonState.text}
                     </button>
+
+                    {getPreviewStatusText(story.storyId)}
                   </div>
                 </div>
               </div>
@@ -891,7 +1021,6 @@ const MyStories: React.FC = () => {
         </div>
       )}
 
-      {/* STORY PREVIEW */}
       <StoryPreviewModal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -902,7 +1031,6 @@ const MyStories: React.FC = () => {
         onStoryUpdate={handleStoryUpdate}
       />
 
-      {/* DELETE MODAL */}
       <DeleteStoryModal
         isOpen={deleteModalOpen}
         onClose={closeDeleteModal}
@@ -911,377 +1039,26 @@ const MyStories: React.FC = () => {
         onDelete={handleStoryDeleted}
       />
 
-      {/* BOOK PURCHASE FORM MODAL */}
-      {showBookFormFor && bookForm && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-[580px] rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">
-                  Customize your printed book
-                </h2>
-               
-              </div>
-              <button
-                onClick={() => {
-                  setShowBookForm(null);
-                  setBookForm(null);
-                }}
-                className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500"
-              >
-                <X size={16} />
-              </button>
-            </div>
+      <UnlockPreviewsModal
+        isOpen={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        onSuccess={() => setShowUnlockModal(false)}
+      />
 
-            <div className="pb-5 space-y-5">
-              {/* Pages */}
-              <div>
-                <p className="text-sm font-medium text-slate-700 mb-2">
-                  Page count
-                </p>
-                <div className="grid grid-cols-3 gap-3">
-                  {(["10", "15", "20"] as Array<"10" | "15" | "20">).map(
-                    (p) => {
-                      const isSelected = bookForm.pageOption === p;
-                      return (
-                        <button
-                          key={p}
-                          disabled={!isSelected}
-                          onClick={() => {
-                            if (!isSelected) return;
-                          }}
-                          className={`rounded-xl border p-3 text-left transition ${
-                            isSelected
-                              ? "border-[#8C5AF2] bg-[#F8F6FF]"
-                              : "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                          }`}
-                        >
-                          <p className="text-sm font-semibold">{p} pages</p>
-                          <p className="text-xs mt-1">
-                            ${PAGE_PRICES[p].toFixed(2)}
-                          </p>
-                        </button>
-                      );
-                    }
-                  )}
-                </div>
-              </div>
-
-              {/* Shipping method */}
-              <div>
-                <p className="text-sm font-medium text-slate-700 mb-2">
-                  Shipping
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() =>
-                      setBookForm((prev) =>
-                        prev ? { ...prev, shipping: "standard" } : prev
-                      )
-                    }
-                    className={`rounded-xl border p-3 text-left transition ${
-                      bookForm.shipping === "standard"
-                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
-                        : "border-slate-200 bg-white hover:border-[#8C5AF2]/50"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-slate-900">
-                      Standard
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      ${SHIPPING_PRICES.standard.price.toFixed(2)} .{" "}
-                      {SHIPPING_PRICES.standard.eta}
-                    </p>
-                  </button>
-                  <button
-                    onClick={() =>
-                      setBookForm((prev) =>
-                        prev ? { ...prev, shipping: "express" } : prev
-                      )
-                    }
-                    className={`rounded-xl border p-3 text-left transition ${
-                      bookForm.shipping === "express"
-                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
-                        : "border-slate-200 bg-white hover:border-[#8C5AF2]/50"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-slate-900">
-                      Express
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      ${SHIPPING_PRICES.express.price.toFixed(2)} .{" "}
-                      {SHIPPING_PRICES.express.eta}
-                    </p>
-                  </button>
-                </div>
-              </div>
-
-              {/* ADDRESS SECTION */}
-              <div className="border-t border-slate-200 pt-4">
-                <p className="text-sm font-medium text-slate-700 mb-3">
-                  Shipping address
-                </p>
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="text-xs text-slate-500 mb-1 block">
-                      Full name
-                    </label>
-                    <input
-                      type="text"
-                      value={bookForm.shipping_address.name}
-                      onChange={(e) =>
-                        setBookForm((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                shipping_address: {
-                                  ...prev.shipping_address,
-                                  name: e.target.value,
-                                },
-                              }
-                            : prev
-                        )
-                      }
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                      placeholder="Enter full name"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs text-slate-500 mb-1 block">
-                      Address line 1
-                    </label>
-                    <input
-                      type="text"
-                      value={bookForm.shipping_address.street1}
-                      onChange={(e) =>
-                        setBookForm((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                shipping_address: {
-                                  ...prev.shipping_address,
-                                  street1: e.target.value,
-                                },
-                              }
-                            : prev
-                        )
-                      }
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                      placeholder="Enter your street address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs text-slate-500 mb-1 block">
-                      Address line 2 (optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={bookForm.shipping_address.street2}
-                      onChange={(e) =>
-                        setBookForm((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                shipping_address: {
-                                  ...prev.shipping_address,
-                                  street2: e.target.value,
-                                },
-                              }
-                            : prev
-                        )
-                      }
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                      placeholder="Apartment, suite, etc."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-slate-500 mb-1 block">
-                        City
-                      </label>
-                      <select
-                        value={bookForm.shipping_address.city}
-                        onChange={(e) =>
-                          setBookForm((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  shipping_address: {
-                                    ...prev.shipping_address,
-                                    city: e.target.value,
-                                  },
-                                }
-                              : prev
-                          )
-                        }
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40 bg-white"
-                      >
-                        <option value="">Select City</option>
-                        {MAJOR_US_CITIES.map((city: string) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-500 mb-1 block">
-                        State
-                      </label>
-                      <select
-                        value={bookForm.shipping_address.state_code}
-                        onChange={(e) =>
-                          setBookForm((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  shipping_address: {
-                                    ...prev.shipping_address,
-                                    state_code: e.target.value,
-                                  },
-                                }
-                              : prev
-                          )
-                        }
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40 bg-white"
-                      >
-                        <option value="">Select State</option>
-                        {US_STATES.map((state: { code: string; name: string }) => (
-                          <option key={state.code} value={state.code}>
-                            {state.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-slate-500 mb-1 block">
-                        ZIP Code
-                      </label>
-                      <input
-                        type="text"
-                        value={bookForm.shipping_address.postcode}
-                        onChange={(e) =>
-                          setBookForm((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  shipping_address: {
-                                    ...prev.shipping_address,
-                                    postcode: e.target.value,
-                                  },
-                                }
-                              : prev
-                          )
-                        }
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                        placeholder="Enter ZIP code"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-500 mb-1 block">
-                        Country
-                      </label>
-
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 bg-white w-full">
-                          <span className="text-lg">🇺🇸</span>
-                          <div className="text-sm text-slate-700">United States</div>
-                          <div className="ml-auto text-xs text-slate-500">US</div>
-                        </div>
-                        {/* keep country_code in state but readOnly */}
-                        <input
-                          type="hidden"
-                          value={bookForm.shipping_address.country_code}
-                          readOnly
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs text-slate-500 mb-1 block">
-                      Phone
-                    </label>
-
-                    {/* Phone with fixed +1 prefix; store digits only */}
-                    <div className="flex">
-                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-200 bg-slate-50 text-sm">
-                        +1
-                      </span>
-                      <input
-                        type="tel"
-                        value={formatUSPhone(bookForm.shipping_address.phone_number)}
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/\D/g, "").slice(0, 10); // digits only, max 10
-                          setBookForm((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  shipping_address: {
-                                    ...prev.shipping_address,
-                                    phone_number: raw,
-                                  },
-                                }
-                              : prev
-                          );
-                        }}
-                        className="w-full rounded-r-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
-                        placeholder="(123) 456-7890"
-                      />
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">Enter 10-digit US phone number</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Summary */}
-              <div className="bg-slate-50 rounded-xl p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500">Total</p>
-                  <p className="text-lg font-semibold text-slate-900">
-                    ${calcTotal(bookForm).toFixed(2)}
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Includes story printing +{" "}
-                    {SHIPPING_PRICES[bookForm.shipping].label} shipping.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                className="w-full h-11 rounded-xl bg-[#8C5AF2] text-white font-semibold hover:bg-[#7C4AE8] transition disabled:opacity-60"
-                disabled={!isAddressValid(bookForm.shipping_address)}
-                onClick={() => {
-                  (async () => {
-                    if (!bookForm) return;
-
-                    if (!isAddressValid(bookForm.shipping_address)) {
-                      toast({
-                        title: "Address incomplete",
-                        description: "Please fill all required fields.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-
-                    await handleBookCheckout(bookForm);
-                    setShowBookForm(null);
-                    setBookForm(null);
-                  })();
-                }}
-              >
-                Continue to payment
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BookCustomizationModal
+        isOpen={showBookFormFor !== null && bookForm !== null}
+        onClose={() => {
+          setShowBookForm(null);
+          setBookForm(null);
+        }}
+        bookForm={bookForm}
+        setBookForm={setBookForm}
+        onCheckout={async (form) => {
+          await handleBookCheckout(form);
+          setShowBookForm(null);
+          setBookForm(null);
+        }}
+      />
     </div>
   );
 };

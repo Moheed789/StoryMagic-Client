@@ -4,6 +4,7 @@ import {
   BookOpenIcon,
   ChevronDown,
   LogOutIcon,
+  MenuIcon,
   SettingsIcon,
   SparklesIcon,
   UserIcon,
@@ -14,10 +15,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function Header() {
   const { user, signOutUser, loading } = useAuth();
-  console.log({ user });
   const [loc, navigate] = useLocation();
   const [open, setOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -25,6 +27,12 @@ export default function Header() {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setOpen(false);
+      }
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setMobileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -68,7 +76,7 @@ export default function Header() {
             </h1>
           </div>
 
-          <nav className="flex items-center gap-1 md:gap-3 relative">
+          <nav className="hidden md:flex items-center gap-1 md:gap-3 relative">
             {user ? (
               <>
                 <Button
@@ -102,11 +110,10 @@ export default function Header() {
                   >
                     {user.apiProfile?.fullName}
                     <ChevronDown
-                      className={`h-4 w-4 transform transition-transform duration-300  ${
-                        open
-                          ? "rotate-180 text-[#8C5AF2]"
-                          : "rotate-0 text-[#8C5AF2]"
-                      }`}
+                      className={`h-4 w-4 transform transition-transform duration-300  ${open
+                        ? "rotate-180 text-[#8C5AF2]"
+                        : "rotate-0 text-[#8C5AF2]"
+                        }`}
                     />
                   </Button>
 
@@ -186,6 +193,123 @@ export default function Header() {
               </>
             )}
           </nav>
+
+          <div className="md:hidden relative" ref={mobileMenuRef}>
+            <Button
+              variant="ghost"
+              className="p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <MenuIcon className="h-5 w-5" />
+            </Button>
+
+            {mobileMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
+                {user ? (
+                  <>
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-[16px] font-story font-[600] text-[#002014]">
+                          {user.apiProfile?.fullName || "John Smith"}
+                        </h3>
+                        <p className="text-[14px] font-story font-[600] text-[#8DA99E]">
+                          {user.apiProfile?.email || "johnsmith12@gmail.com"}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          onLogout();
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <LogOutIcon className="h-5 w-5 text-gray-600" />
+                      </button>
+                    </div>
+
+                    <hr className="my-4 border-[#E8EDEB]" />
+
+                    {/* Navigation Options */}
+                    <div className="space-y-3 mb-4">
+                      <button
+                        className="flex items-center gap-3 text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-left text-[14px] p-2 rounded-lg hover:bg-gray-50"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          navigate("/profile");
+                        }}
+                      >
+                        <UserIcon className="h-4 w-4" />
+                        <span>User Profile</span>
+                      </button>
+
+                      {/* <button
+                        className="flex items-center gap-3 text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-left text-[14px] p-2 rounded-lg hover:bg-gray-50"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <SettingsIcon className="h-4 w-4" />
+                        <span>Pricing Plan</span>
+                      </button> */}
+                    </div>
+
+                    <hr className="my-4 border-[#E8EDEB]" />
+
+                    <div className="space-y-3">
+                      <Button
+                        variant="ghost"
+                        className="w-full bg-[#8C5AF2] text-white hover:bg-[#7B4CEB] gap-2"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          goHomeBottom();
+                        }}
+                      >
+                        Create Story
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full border border-[#D2D2D2]"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          navigate("/mystories");
+                        }}
+                      >
+                        My Stories
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          navigate("/signin");
+                        }}
+                      >
+                        SignIn
+                      </Button>
+
+                      <Button
+                        className="w-full gap-2 font-semibold"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          navigate("/signup");
+                        }}
+                      >
+                        Register
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
