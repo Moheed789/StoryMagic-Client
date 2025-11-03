@@ -65,7 +65,7 @@ export function CartoonStyleSelector({
   onStyleChange,
 }: CartoonStyleSelectorProps) {
   return (
-    <div className="container mx-auto px-6">
+    <div className="container mx-auto px-6" id="cartoon-style">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-display font-bold mb-4">

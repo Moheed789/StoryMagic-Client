@@ -59,7 +59,6 @@ interface StoryWithPages {
 }
 
 type CartoonStyle = "traditional" | "anime" | "3d" | "chibi";
-
 const safeTrim = (v?: string | null) => (typeof v === "string" ? v.trim() : "");
 
 interface ChatInterfaceProps {
@@ -68,7 +67,6 @@ interface ChatInterfaceProps {
 }
 
 const API_URL = `${import.meta.env.VITE_BASE_URL}/stories/generate`;
-console.log("API_URL:", API_URL);
 const STATUS_BASE_URL = `${import.meta.env.VITE_BASE_URL}/`;
 const STYLE_INDEX: Record<CartoonStyle, number> = {
   traditional: 0,
@@ -94,9 +92,7 @@ export default function ChatInterface({
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
-  // Add target age state
   const [targetAge, setTargetAge] = useState<string>("3-5 years");
-
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -109,6 +105,7 @@ export default function ChatInterface({
 
   const [inputValue, setInputValue] = useState("");
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -118,7 +115,6 @@ export default function ChatInterface({
   }, []);
 
   const [loc] = useLocation();
-
   useEffect(() => {
     if (window.location.hash === "#bottom") {
       requestAnimationFrame(() => {
@@ -178,8 +174,6 @@ export default function ChatInterface({
       if (title) payload.title = title;
       if (author) payload.author = author;
 
-      console.log("Story generation payload:", payload);
-
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader },
@@ -196,10 +190,8 @@ export default function ChatInterface({
 
     onSuccess: async ({ storyId }) => {
       setStoryId(storyId);
-
       try {
         await sleep(INITIAL_DELAY_MS);
-
         let attempt = 0;
         let lastStatus: string | undefined;
 
@@ -219,7 +211,6 @@ export default function ChatInterface({
 
           const statusJson = (await statusRes.json()) as StatusResp;
           lastStatus = statusJson?.status?.toLowerCase();
-          console.log(`Status attempt ${attempt + 1}:`, lastStatus);
 
           if (lastStatus === "completed") break;
           if (lastStatus === "failed")
@@ -263,15 +254,17 @@ export default function ChatInterface({
       }
     },
 
-    onError: (error) => {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content:
-          "you've reached the daily limit of free stories, please generate more stories tomorrow.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+    onError: () => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content:
+            "You've reached the daily limit of free stories. Please try again tomorrow.",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
     },
   });
 
@@ -287,6 +280,18 @@ export default function ChatInterface({
       );
       return;
     }
+
+    if (!selectedPageCount) {
+      setError("Please select a story length before creating your story.");
+      toast({
+        title: "Missing selection",
+        description: "You must select a story length to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setError(null);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -312,7 +317,7 @@ export default function ChatInterface({
   return (
     <>
       <Card
-        className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col "
+        className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col"
         id="bottom"
       >
         <div className="p-4 border-b border-card-border">
@@ -351,7 +356,6 @@ export default function ChatInterface({
                     <SparklesIcon className="h-4 w-4" />
                   )}
                 </div>
-
                 <div
                   className={`max-w-[80%] ${
                     message.isUser ? "text-right" : "text-left"
@@ -377,7 +381,7 @@ export default function ChatInterface({
             ))}
 
             {createStoryMutation.isPending && (
-              <div className="flex gap-3 ">
+              <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
                   <SparklesIcon className="h-4 w-4 animate-pulse" />
                 </div>
@@ -406,39 +410,71 @@ export default function ChatInterface({
 
         <div className="p-4 border-t border-card-border">
           <div className="space-y-3">
-            {/* First row: Story Length and Target Age */}
             <div className="flex items-center gap-6">
-              {/* Story Length */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="page-count" className="text-sm font-medium">
-                    Story Length:
-                  </Label>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="page-count" className="text-sm font-medium">
+                      Story Length:
+                    </Label>
+                  </div>
+
+                  {/* <Select
+                    value={
+                      selectedPageCount !== null
+                        ? String(selectedPageCount)
+                        : undefined
+                    }
+                    onValueChange={(v) => {
+                      setSelectedPageCount(Number(v));
+                      setError(null);
+                    }}
+                    disabled={createStoryMutation.isPending}
+                  >
+                    <SelectTrigger
+                      id="page-count"
+                      data-testid="select-page-count"
+                      className="w-32"
+                    >
+                      <SelectValue  />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 pages</SelectItem>
+                      <SelectItem value="15">15 pages</SelectItem>
+                      <SelectItem value="20">20 pages</SelectItem>
+                    </SelectContent>
+                  </Select> */}
+
+                  <Select
+                    value={
+                      selectedPageCount !== null
+                        ? String(selectedPageCount)
+                        : undefined
+                    }
+                    onValueChange={(v) => {
+                      setSelectedPageCount(Number(v));
+                      setError(null);
+                    }}
+                    disabled={createStoryMutation.isPending}
+                  >
+                    <SelectTrigger
+                      id="page-count"
+                      data-testid="select-page-count"
+                      className="w-40"
+                    >
+                      <SelectValue placeholder="Select pages" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="10">10 pages</SelectItem>
+                      <SelectItem value="15">15 pages</SelectItem>
+                      <SelectItem value="20">20 pages</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <Select
-                  value={
-                    selectedPageCount !== null
-                      ? String(selectedPageCount)
-                      : undefined
-                  }
-                  onValueChange={(v) => setSelectedPageCount(Number(v))}
-                  disabled={createStoryMutation.isPending}
-                >
-                  <SelectTrigger
-                    id="page-count"
-                    data-testid="select-page-count"
-                    className="w-32"
-                  >
-                    <SelectValue placeholder="Select pages" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 pages</SelectItem>
-                    <SelectItem value="15">15 pages</SelectItem>
-                    <SelectItem value="20">20 pages</SelectItem>
-                  </SelectContent>
-                </Select>
+                {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
               </div>
 
               <div className="flex items-center gap-3">
@@ -470,7 +506,6 @@ export default function ChatInterface({
               </div>
             </div>
 
-            {/* Second row: Title and Author */}
             <div className="flex flex-col md:flex-row gap-2">
               <Input
                 placeholder="Story Title (e.g., The Brave Little Mouse)"
@@ -486,7 +521,6 @@ export default function ChatInterface({
               />
             </div>
 
-            {/* Third row: Story input and send button */}
             <div className="flex gap-2">
               <Input
                 data-testid="input-story-idea"
@@ -507,6 +541,7 @@ export default function ChatInterface({
               </Button>
             </div>
           </div>
+
           <p className="text-xs text-muted-foreground mt-2">
             Press Enter to send • Be creative and specific for better results
           </p>
