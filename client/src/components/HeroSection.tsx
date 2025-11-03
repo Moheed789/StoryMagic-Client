@@ -70,10 +70,14 @@ export default function HeroSection() {
                   size="lg"
                   className="gap-2 font-semibold"
                   onClick={() => {
-                    window.scrollTo({
-                      top: document.body.scrollHeight,
-                      behavior: "smooth",
-                    });
+                    const el = document.getElementById("cartoon-style");
+                    if (el) {
+                      const offset =
+                        el.getBoundingClientRect().top +
+                        window.scrollY -
+                        window.innerHeight / 3;
+                      window.scrollTo({ top: offset, behavior: "smooth" });
+                    }
                   }}
                 >
                   <SparklesIcon className="h-5 w-5" />

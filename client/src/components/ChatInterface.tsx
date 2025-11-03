@@ -59,7 +59,6 @@ interface StoryWithPages {
 }
 
 type CartoonStyle = "traditional" | "anime" | "3d" | "chibi";
-
 const safeTrim = (v?: string | null) => (typeof v === "string" ? v.trim() : "");
 
 interface ChatInterfaceProps {
@@ -94,7 +93,6 @@ export default function ChatInterface({
   const [location, setLocation] = useLocation();
 
   const [targetAge, setTargetAge] = useState<string>("3-5 years");
-
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -107,6 +105,7 @@ export default function ChatInterface({
 
   const [inputValue, setInputValue] = useState("");
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -116,7 +115,6 @@ export default function ChatInterface({
   }, []);
 
   const [loc] = useLocation();
-
   useEffect(() => {
     if (window.location.hash === "#bottom") {
       requestAnimationFrame(() => {
@@ -192,10 +190,8 @@ export default function ChatInterface({
 
     onSuccess: async ({ storyId }) => {
       setStoryId(storyId);
-
       try {
         await sleep(INITIAL_DELAY_MS);
-
         let attempt = 0;
         let lastStatus: string | undefined;
 
@@ -258,15 +254,17 @@ export default function ChatInterface({
       }
     },
 
-    onError: (error) => {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content:
-          "you've reached the daily limit of free stories, please generate more stories tomorrow.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+    onError: () => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content:
+            "You've reached the daily limit of free stories. Please try again tomorrow.",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
     },
   });
 
@@ -282,6 +280,18 @@ export default function ChatInterface({
       );
       return;
     }
+
+    if (!selectedPageCount) {
+      setError("Please select a story length before creating your story.");
+      toast({
+        title: "Missing selection",
+        description: "You must select a story length to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setError(null);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -307,7 +317,7 @@ export default function ChatInterface({
   return (
     <>
       <Card
-        className="h-[450px] sm:h-[500px] w-full max-w-[1280px] mx-auto flex flex-col"
+        className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col"
         id="bottom"
       >
         <div className="p-3 sm:p-4 border-b border-card-border">
@@ -346,7 +356,6 @@ export default function ChatInterface({
                     <SparklesIcon className="h-4 w-4" />
                   )}
                 </div>
-
                 <div
                   className={`max-w-[85%] sm:max-w-[80%] ${
                     message.isUser ? "text-right" : "text-left"
@@ -372,9 +381,9 @@ export default function ChatInterface({
             ))}
 
             {createStoryMutation.isPending && (
-              <div className="flex gap-2 sm:gap-3">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center flex-shrink-0">
-                  <SparklesIcon className="h-3 w-3 sm:h-4 sm:w-4 animate-pulse" />
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
+                  <SparklesIcon className="h-4 w-4 animate-pulse" />
                 </div>
                 <div className="bg-muted text-muted-foreground p-2 sm:p-3 rounded-lg max-w-[85%] sm:max-w-[80%]">
                   <div className="flex items-center gap-2">
@@ -499,6 +508,7 @@ export default function ChatInterface({
               </Button>
             </div>
           </div>
+
           <p className="text-xs text-muted-foreground mt-2">
             Press Enter to send • Be creative and specific for better results
           </p>

@@ -371,7 +371,7 @@ const MyStories: React.FC = () => {
       };
 
       const res = await fetch(
-        `${import.meta.env.BASE_URL}/stripe/story-download-book`,
+        `${import.meta.env.VITE_BASE_URL}/stripe/story-download-book`,
         {
           method: "POST",
           headers: {
@@ -859,7 +859,7 @@ const MyStories: React.FC = () => {
                     <img
                       src={story.coverImageUrl || "/placeholder-cover.jpg"}
                       alt={story.title}
-                      className="absolute inset-0 w-full h-full object-cover object-top"
+                      className="absolute inset-0 w-full h-full object-top"
                     />
                     <button
                       onClick={() =>

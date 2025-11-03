@@ -39,9 +39,17 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const goHomeBottom = useCallback(() => {
-    const scroll = () =>
-      document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" });
+  const goToCartoonStyle = useCallback(() => {
+    const scroll = () => {
+      const el = document.getElementById("cartoon-style");
+      if (el) {
+        const offset =
+          el.getBoundingClientRect().top +
+          window.scrollY -
+          window.innerHeight / 3; 
+        window.scrollTo({ top: offset, behavior: "smooth" });
+      }
+    };
 
     if (window.location.pathname === "/") {
       requestAnimationFrame(scroll);
@@ -49,7 +57,7 @@ export default function Header() {
       navigate("/");
       setTimeout(() => {
         scroll();
-      }, 100);
+      }, 200);
     }
   }, [navigate]);
 
@@ -90,7 +98,7 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   className="gap-2 bg-[#8C5AF2] text-white hover:bg-[#7B4CEB] md:text-[14px] text-[11px] px-[8px] py-[8px] sm:px-[16px] "
-                  onClick={() => goHomeBottom()}
+                  onClick={() => goToCartoonStyle()}
                 >
                   <SparklesIcon className="h-4 w-4" />
                   Create Story
