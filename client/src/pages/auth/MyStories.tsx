@@ -110,8 +110,12 @@ const MyStories: React.FC = () => {
   const [showBookFormFor, setShowBookForm] = useState<string | null>(null);
   const [bookForm, setBookForm] = useState<BookPurchaseForm | null>(null);
 
-  const [storyPreviewCounts, setStoryPreviewCounts] = useState<{ [storyId: string]: number }>({});
-  const [previewsPurchased, setPreviewsPurchased] = useState<boolean>(false);
+  const [storyPreviewCounts, setStoryPreviewCounts] = useState<{
+    [storyId: string]: number;
+  }>({});
+  const [previewsPurchased, setPreviewsPurchased] = useState<{
+    [storyId: string]: boolean;
+  }>({});
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
 
   useEffect(() => {
@@ -138,15 +142,24 @@ const MyStories: React.FC = () => {
           setStories([]);
         }
 
+        // Load preview counts
         const savedStoryPreviewCounts = localStorage.getItem("storyPreviewCounts");
-        const savedPreviewsPurchased = localStorage.getItem("previewsPurchased");
-
         if (savedStoryPreviewCounts) {
           setStoryPreviewCounts(JSON.parse(savedStoryPreviewCounts));
         }
 
-        if (savedPreviewsPurchased === "true") {
-          setPreviewsPurchased(true);
+        // Load purchased previews
+        const savedPreviewsPurchased = localStorage.getItem("previewsPurchased");
+        if (savedPreviewsPurchased) {
+          try {
+            const purchasedPreviews = JSON.parse(savedPreviewsPurchased);
+            if (typeof purchasedPreviews === 'object') {
+              setPreviewsPurchased(purchasedPreviews);
+            }
+          } catch {
+            localStorage.removeItem("previewsPurchased");
+            setPreviewsPurchased({});
+          }
         }
       } catch (err: any) {
         setError(err?.message || "Something went wrong");
@@ -358,7 +371,7 @@ const MyStories: React.FC = () => {
       };
 
       const res = await fetch(
-        "https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stripe/story-download-book",
+        `${import.meta.env.BASE_URL}/stripe/story-download-book`,
         {
           method: "POST",
           headers: {
@@ -417,7 +430,7 @@ const MyStories: React.FC = () => {
     storyId: string,
     downloadOption: "pdf_only" | "pdf_and_book"
   ) => {
-    setDownloadLoading(prev => ({ ...prev, [storyId]: true }));
+    setDownloadLoading((prev) => ({ ...prev, [storyId]: true }));
 
     try {
       const session: any = await fetchAuthSession();
@@ -471,8 +484,9 @@ const MyStories: React.FC = () => {
 
           const link = document.createElement("a");
           link.href = downloadUrl;
-          link.download = `${story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
-            }_${downloadOption}.pdf`;
+          link.download = `${
+            story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
+          }_${downloadOption}.pdf`;
           link.target = "_blank";
           document.body.appendChild(link);
           link.click();
@@ -484,7 +498,7 @@ const MyStories: React.FC = () => {
             variant: "default",
           });
 
-          setDownloadLoading(prev => ({ ...prev, [storyId]: false }));
+          setDownloadLoading((prev) => ({ ...prev, [storyId]: false }));
           return;
         }
         throw new Error(jsonData.message || "No download URL provided");
@@ -497,8 +511,9 @@ const MyStories: React.FC = () => {
         const link = document.createElement("a");
         link.href = url;
 
-        const filename = `${story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
-          }_${downloadOption}.pdf`;
+        const filename = `${
+          story.title?.replace(/[^a-zA-Z0-9]/g, "_") || "Story"
+        }_${downloadOption}.pdf`;
         link.download = filename;
 
         document.body.appendChild(link);
@@ -513,7 +528,7 @@ const MyStories: React.FC = () => {
           variant: "default",
         });
 
-        setDownloadLoading(prev => ({ ...prev, [storyId]: false }));
+        setDownloadLoading((prev) => ({ ...prev, [storyId]: false }));
         return;
       }
 
@@ -525,7 +540,7 @@ const MyStories: React.FC = () => {
         variant: "destructive",
       });
     } finally {
-      setDownloadLoading(prev => ({ ...prev, [storyId]: false }));
+      setDownloadLoading((prev) => ({ ...prev, [storyId]: false }));
     }
   };
 
@@ -557,9 +572,14 @@ const MyStories: React.FC = () => {
     );
   };
 
+  const [unlockModalStoryId, setUnlockModalStoryId] = useState<string>("");
+
   const openPreviewModal = async (storyId: string) => {
+    const isPurchased = previewsPurchased[storyId] === true;
     const currentStoryPreviewCount = storyPreviewCounts[storyId] || 0;
-    if (!previewsPurchased && currentStoryPreviewCount >= 3) {
+
+    if (!isPurchased && currentStoryPreviewCount >= 3) {
+      setUnlockModalStoryId(storyId);
       setShowUnlockModal(true);
       return;
     }
@@ -586,31 +606,39 @@ const MyStories: React.FC = () => {
       const data = await res.json();
       setModalStory(data);
 
-      if (!previewsPurchased) {
+      if (!isPurchased) {
         const newStoryPreviewCounts = {
           ...storyPreviewCounts,
-          [storyId]: currentStoryPreviewCount + 1
+          [storyId]: currentStoryPreviewCount + 1,
         };
         setStoryPreviewCounts(newStoryPreviewCounts);
-        localStorage.setItem("storyPreviewCounts", JSON.stringify(newStoryPreviewCounts));
+        localStorage.setItem(
+          "storyPreviewCounts",
+          JSON.stringify(newStoryPreviewCounts)
+        );
       }
     } catch (err) {
       console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to load story preview",
+        variant: "destructive",
+      });
     } finally {
       setModalLoading(false);
     }
   };
 
-
-
   const getPreviewButtonState = (storyId: string) => {
+    const isPurchased = previewsPurchased[storyId] === true;
     const currentStoryPreviewCount = storyPreviewCounts[storyId] || 0;
 
-    if (previewsPurchased) {
+    if (isPurchased) {
       return {
         text: "Preview",
         disabled: false,
-        className: "w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition"
+        className:
+          "w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition",
       };
     }
 
@@ -618,22 +646,25 @@ const MyStories: React.FC = () => {
       return {
         text: "Preview",
         disabled: false,
-        className: "w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition"
+        className:
+          "w-full h-10 rounded-md text-[#8C5AF2] text-[16px] font-semibold hover:bg-violet-200 transition",
       };
     }
 
     return {
       text: "Preview",
       disabled: true,
-      className: "w-full h-10 rounded-md text-slate-400 text-[16px] font-semibold cursor-not-allowed bg-slate-100"
+      className:
+        "w-full h-10 rounded-md text-slate-400 text-[16px] font-semibold cursor-not-allowed bg-slate-100",
     };
   };
 
   const getPreviewStatusText = (storyId: string) => {
+    const isPurchased = previewsPurchased[storyId] === true;
     const currentStoryPreviewCount = storyPreviewCounts[storyId] || 0;
     const previewsLeft = Math.max(0, 3 - currentStoryPreviewCount);
 
-    if (previewsPurchased) {
+    if (isPurchased) {
       return (
         <div className="text-center mt-2">
           <span className="text-[14px] text-green-600 font-medium">
@@ -646,9 +677,11 @@ const MyStories: React.FC = () => {
     if (previewsLeft > 0) {
       return (
         <div>
-          <p className="text-[14px] text-[#6F677E]  flex items-center gap-2 justify-end">
+          <p className="text-[14px] text-[#6F677E] flex items-center gap-2 justify-end">
             Free Previews:
-            <span className="text-[#34C759] font-medium">{previewsLeft} Left</span>
+            <span className="text-[#34C759] font-medium">
+              {previewsLeft} Left
+            </span>
           </p>
         </div>
       );
@@ -656,24 +689,19 @@ const MyStories: React.FC = () => {
 
     return (
       <div className="flex items-center justify-between">
-
-        <div >
+        <div>
           <span className="text-[14px] text-red-500 font-medium">
             Limit Reached
           </span>
           <button
-            onClick={() => setShowUnlockModal(true)}
+            onClick={() => {
+              setUnlockModalStoryId(storyId);
+              setShowUnlockModal(true);
+            }}
             className="ml-2 text-[14px] text-[#8C5AF2] underline font-medium hover:text-[#7C4AE8]"
           >
             Unlock Previews
           </button>
-        </div>
-        <div>
-          <p className="text-[14px] text-[#6F677E] flex items-center gap-2">
-            Free previews:
-            <span className="text-[#34C759] font-medium">
-              {3 - (storyPreviewCounts[storyId] || 0)} left </span>
-          </p>
         </div>
       </div>
     );
@@ -734,10 +762,10 @@ const MyStories: React.FC = () => {
       prevStories.map((story) =>
         story.storyId === updatedStory.storyId
           ? {
-            ...story,
-            title: updatedStory.title,
-            coverImageUrl: updatedStory.coverImageUrl,
-          }
+              ...story,
+              title: updatedStory.title,
+              coverImageUrl: updatedStory.coverImageUrl,
+            }
           : story
       )
     );
@@ -767,26 +795,6 @@ const MyStories: React.FC = () => {
     const book = PAGE_PRICES[form.pageOption];
     const shipping = SHIPPING_PRICES[form.shipping].price;
     return book + shipping;
-  };
-
-  const isAddressValid = (addr: ShippingAddress) => {
-    return (
-      addr.name.trim() &&
-      addr.street1.trim() &&
-      addr.city.trim() &&
-      addr.state_code.trim() &&
-      addr.postcode.trim() &&
-      addr.country_code.trim() &&
-      addr.phone_number.trim()
-    );
-  };
-
-  const formatUSPhone = (digits: string) => {
-    if (!digits) return "";
-    const d = digits.replace(/\D/g, "").slice(0, 10);
-    if (d.length <= 3) return `(${d}`;
-    if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
-    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   };
 
   if (loading) {
@@ -883,12 +891,13 @@ const MyStories: React.FC = () => {
                         pdfPurchased &&
                         handleDownloadOptionSelect(story.storyId, "pdf_only")
                       }
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${pdfPurchased && selectedOption === "pdf_only"
-                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
-                        : pdfPurchased
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
+                        pdfPurchased && selectedOption === "pdf_only"
+                          ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                          : pdfPurchased
                           ? "border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50"
                           : "border-[#E5E5E5] bg-white cursor-default"
-                        }`}
+                      }`}
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1">
@@ -929,12 +938,13 @@ const MyStories: React.FC = () => {
                           "pdf_and_book"
                         )
                       }
-                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${bookPurchased && selectedOption === "pdf_and_book"
-                        ? "border-[#8C5AF2] bg-[#F8F6FF]"
-                        : bookPurchased
+                      className={`flex items-center justify-between p-4 border rounded-[12px] transition-colors cursor-pointer ${
+                        bookPurchased && selectedOption === "pdf_and_book"
+                          ? "border-[#8C5AF2] bg-[#F8F6FF]"
+                          : bookPurchased
                           ? "border-[#E5E5E5] bg-white hover:border-[#8C5AF2]/50"
                           : "border-[#E5E5E5] bg-white cursor-default"
-                        }`}
+                      }`}
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1 w-full max-w-[249px]">
@@ -987,7 +997,10 @@ const MyStories: React.FC = () => {
                       onClick={() =>
                         handleDownload(story.storyId, selectedOption)
                       }
-                      disabled={(!pdfPurchased && !bookPurchased) || downloadLoading[story.storyId]}
+                      disabled={
+                        (!pdfPurchased && !bookPurchased) ||
+                        downloadLoading[story.storyId]
+                      }
                       className="w-full h-[48px] rounded-[12px] bg-[#8C5AF2] text-white text-[16px] font-semibold hover:bg-[#7C4AE8] transition disabled:bg-[#CCCCCC] disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {downloadLoading[story.storyId] ? (
@@ -1041,8 +1054,29 @@ const MyStories: React.FC = () => {
 
       <UnlockPreviewsModal
         isOpen={showUnlockModal}
-        onClose={() => setShowUnlockModal(false)}
-        onSuccess={() => setShowUnlockModal(false)}
+        onClose={() => {
+          setShowUnlockModal(false);
+          setUnlockModalStoryId("");
+        }}
+        storyId={unlockModalStoryId}
+        onSuccess={() => {
+          if (unlockModalStoryId) {
+            const updatedPurchases = {
+              ...previewsPurchased,
+              [unlockModalStoryId]: true
+            };
+            setPreviewsPurchased(updatedPurchases);
+            localStorage.setItem("previewsPurchased", JSON.stringify(updatedPurchases));
+            
+            const updatedCounts = { ...storyPreviewCounts };
+            delete updatedCounts[unlockModalStoryId];
+            setStoryPreviewCounts(updatedCounts);
+            localStorage.setItem("storyPreviewCounts", JSON.stringify(updatedCounts));
+            
+            setShowUnlockModal(false);
+            setUnlockModalStoryId("");
+          }
+        }}
       />
 
       <BookCustomizationModal

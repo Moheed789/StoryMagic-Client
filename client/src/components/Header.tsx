@@ -72,7 +72,7 @@ export default function Header() {
               className="text-md md:text-xl font-display font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent cursor-pointer"
               onClick={() => navigate("/")}
             >
-              StoryMagic
+              StoryBloom
             </h1>
           </div>
 

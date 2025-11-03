@@ -7,12 +7,13 @@ interface UnlockPreviewsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  storyId: string;
 }
-
 const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  storyId,
 }) => {
   const { toast } = useToast();
   const [unlockLoading, setUnlockLoading] = React.useState<boolean>(false);
@@ -20,6 +21,16 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
   const handleUnlockPreviews = async () => {
     try {
       setUnlockLoading(true);
+
+      // Add validation for storyId
+      if (!storyId) {
+        toast({
+          title: "Error",
+          description: "No story selected",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const session: any = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
@@ -34,7 +45,7 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/stripe/unlock-previews-session`,
+        `${import.meta.env.VITE_BASE_URL}/stripe/story-download-session`,
         {
           method: "POST",
           headers: {
@@ -42,8 +53,8 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            productType: "unlimited_previews",
-            price: 4.99,
+            storyId: storyId, 
+            downloadOption: "pdf_only",
           }),
         }
       );

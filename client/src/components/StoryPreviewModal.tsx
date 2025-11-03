@@ -4,6 +4,23 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { useToast } from "@/hooks/use-toast";
 
+const secureContentStyles: React.CSSProperties = {
+  userSelect: "none",
+  WebkitUserSelect: "none",
+  msUserSelect: "none",
+  WebkitTouchCallout: "none",
+  pointerEvents: "none",
+};
+
+const secureImageStyles: React.CSSProperties = {
+  userSelect: "none",
+  WebkitUserSelect: "none",
+  msUserSelect: "none",
+  pointerEvents: "none",
+  WebkitTouchCallout: "none",
+  filter: "opacity(0.98)",
+};
+
 interface StoryPage {
   pageNumber?: number;
   text?: string;
@@ -54,7 +71,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
   const { toast } = useToast();
   const [editLoading, setEditLoading] = useState(false);
   const [imageGenerating, setImageGenerating] = useState(false);
-  const [localModalStory, setLocalModalStory] = useState<StoryDetails | null>(modalStory);
+  const [localModalStory, setLocalModalStory] = useState<StoryDetails | null>(
+    modalStory
+  );
   const [editData, setEditData] = useState({
     title: "",
     author: "",
@@ -77,7 +96,8 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
   const frontCover = sortedPages.find((p) => p.type === "COVER_FRONT");
   const backCover = sortedPages.find((p) => p.type === "COVER_BACK");
   const storyPages = sortedPages.filter((p) => p.type === "PAGE");
-  const totalPages = (frontCover ? 1 : 0) + storyPages.length + (backCover ? 1 : 0);
+  const totalPages =
+    (frontCover ? 1 : 0) + storyPages.length + (backCover ? 1 : 0);
 
   const getPageTitle = () => {
     if (currentPage === 0 && frontCover) return "Front Cover";
@@ -100,7 +120,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
     }
 
     if (currentPage === totalPages - 1 && backCover) {
-      return backCover.text || backCover.content || "The End\n\nThank you for reading this magical story!";
+      return (
+        backCover.text ||
+        backCover.content ||
+        "The End\n\nThank you for reading this magical story!"
+      );
     }
 
     const pageIndex = currentPage - (frontCover ? 1 : 0);
@@ -138,10 +162,13 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
     }
   }, [currentPage, localModalStory, modalLoading]);
 
-  const generateFrontCoverImage = async (storyId: string, pageNumber: number) => {
+  const generateFrontCoverImage = async (
+    storyId: string,
+    pageNumber: number
+  ) => {
     try {
       setImageGenerating(true);
-      
+
       const session: any = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
 
@@ -155,7 +182,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       }
 
       const generateResponse = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/pages/${pageNumber}/generate-image`,
+        `${
+          import.meta.env.VITE_BASE_URL
+        }/stories/${storyId}/pages/${pageNumber}/generate-image`,
         {
           method: "POST",
           headers: {
@@ -167,7 +196,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
       if (!generateResponse.ok) {
         const errorData = await generateResponse.json();
-        throw new Error(errorData.message || "Failed to start image generation");
+        throw new Error(
+          errorData.message || "Failed to start image generation"
+        );
       }
 
       toast({
@@ -178,12 +209,13 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
       let attempts = 0;
       const maxAttempts = 30;
-      
+
       const pollImageStatus = async (): Promise<void> => {
         if (attempts >= maxAttempts) {
           toast({
             title: "Generation Timeout",
-            description: "Image generation is taking longer than expected. Please refresh to check status.",
+            description:
+              "Image generation is taking longer than expected. Please refresh to check status.",
             variant: "destructive",
           });
           setImageGenerating(false);
@@ -194,7 +226,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
         try {
           const statusResponse = await fetch(
-            `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/pages/${pageNumber}/image-status`,
+            `${
+              import.meta.env.VITE_BASE_URL
+            }/stories/${storyId}/pages/${pageNumber}/image-status`,
             {
               method: "GET",
               headers: {
@@ -208,22 +242,24 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           }
 
           const statusData = await statusResponse.json();
-          
+
           if (statusData.status === "COMPLETED" && statusData.imageUrl) {
             const updatedStory = { ...localModalStory! };
-            const frontCoverIndex = pages.findIndex(p => p.type === "COVER_FRONT");
-            
+            const frontCoverIndex = pages.findIndex(
+              (p) => p.type === "COVER_FRONT"
+            );
+
             if (frontCoverIndex !== -1) {
               updatedStory.pages![frontCoverIndex] = {
                 ...updatedStory.pages![frontCoverIndex],
                 imageUrl: statusData.imageUrl,
               };
-              
+
               // Also update coverImageUrl for story card
-              updatedStory.coverImageUrl = statusData.imageUrl;
-              
+              updatedStory.coverImageUrl = status;
+
               setLocalModalStory(updatedStory);
-              
+
               // Update parent component's story state
               if (onStoryUpdate) {
                 onStoryUpdate(updatedStory);
@@ -232,10 +268,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
             toast({
               title: "Image Generated Successfully",
-              description: "Front cover image has been updated with new content!",
+              description:
+                "Front cover image has been updated with new content!",
               variant: "default",
             });
-            
+
             setImageGenerating(false);
           } else if (statusData.status === "FAILED") {
             toast({
@@ -249,12 +286,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           }
         } catch (error: any) {
           console.error("Error checking image status:", error);
-          setTimeout(pollImageStatus, 2000); 
+          setTimeout(pollImageStatus, 2000);
         }
       };
 
       setTimeout(pollImageStatus, 2000);
-
     } catch (error: any) {
       console.error("Image generation error:", error);
       toast({
@@ -269,7 +305,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
   const handleEditStory = async () => {
     if (!localModalStory) return;
 
-    try { 
+    try {
       setEditLoading(true);
       const session: any = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
@@ -304,7 +340,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/stories/${storyIdFromPages}/page/${pageNo}`,
+        `${
+          import.meta.env.VITE_BASE_URL
+        }/stories/${storyIdFromPages}/page/${pageNo}`,
         {
           method: "PUT",
           headers: {
@@ -322,9 +360,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
       const updatedStory = { ...localModalStory };
       const currentPageData = getCurrentPageData();
-      
+
       if (currentPageData) {
-        const pageIndex = pages.findIndex(p => p === currentPageData);
+        const pageIndex = pages.findIndex((p) => p === currentPageData);
         if (pageIndex !== -1) {
           if (isFrontCover) {
             updatedStory.pages![pageIndex] = {
@@ -345,27 +383,26 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       }
 
       setLocalModalStory(updatedStory);
-      
+
       // Update parent component's story state
       if (onStoryUpdate) {
         onStoryUpdate(updatedStory);
       }
-      
+
       toast({
         title: "Success",
         description: "Story updated successfully!",
         variant: "default",
       });
-      
+
       setIsEditing(false);
 
       if (isFrontCover) {
         await generateFrontCoverImage(storyIdFromPages, pageNo);
       }
-
     } catch (error: any) {
       console.error("Edit story error:", error);
-      
+
       toast({
         title: "Update Failed",
         description: `Failed to update story: ${error.message}`,
@@ -388,20 +425,27 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       const author = pages.find((p) => p.author)?.author;
 
       return (
-        <div className="mb-6">
+        <div className="mb-6" onContextMenu={(e) => e.preventDefault()}>
           <h3 className="text-lg font-story md:text-xl font-semibold text-gray-900 mb-4">
             Story Information
           </h3>
-          <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] leading-relaxed w-[570px] p-4">
+          <div
+            className="rounded-[20px] bg-[#EFEFEF] text-[#616161] leading-relaxed w-[570px] p-4"
+            style={secureContentStyles}
+          >
             <div className="w-[515px] space-y-3">
               <div>
-                <span className="text-[14px] font-bold text-[#333333]">Title: </span>
+                <span className="text-[14px] font-bold text-[#333333]">
+                  Title:{" "}
+                </span>
                 <span className="text-[16px] font-semibold text-[#8C5AF2]">
                   {finalTitle || "Untitled"}
                 </span>
               </div>
               <div>
-                <span className="text-[14px] font-bold text-[#333333]">Author: </span>
+                <span className="text-[14px] font-bold text-[#333333]">
+                  Author:{" "}
+                </span>
                 <span className="text-[14px] font-medium text-[#616161]">
                   {author || "No author specified"}
                 </span>
@@ -414,11 +458,16 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
     if (pageText && typeof pageText === "string") {
       return (
-        <div className="mb-6">
+        <div className="mb-6" onContextMenu={(e) => e.preventDefault()}>
           <h3 className="text-lg font-story md:text-xl font-semibold text-gray-900 mb-4">
-            {currentPage === totalPages - 1 ? "Back Cover Content" : "Story Content"}
+            {currentPage === totalPages - 1
+              ? "Back Cover Content"
+              : "Story Content"}
           </h3>
-          <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] leading-relaxed w-[570px] p-4">
+          <div
+            className="rounded-[20px] bg-[#EFEFEF] text-[#616161] leading-relaxed w-[570px] p-4"
+            style={secureContentStyles}
+          >
             <p className="whitespace-pre-line w-[515px] text-[14px] font-medium">
               {pageText}
             </p>
@@ -443,11 +492,12 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           Edit Story Content
         </h3>
         <div className="rounded-[20px] bg-[#F8F9FA] border border-[#E5E5E5] w-[570px] p-4 space-y-4">
-          
           {isFrontCover && (
             <>
               <div>
-                <label className="text-[14px] font-bold text-[#333333] block mb-2">Title:</label>
+                <label className="text-[14px] font-bold text-[#333333] block mb-2">
+                  Title:
+                </label>
                 <input
                   type="text"
                   value={editData.title}
@@ -457,7 +507,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                 />
               </div>
               <div>
-                <label className="text-[14px] font-bold text-[#333333] block mb-2">Author:</label>
+                <label className="text-[14px] font-bold text-[#333333] block mb-2">
+                  Author:
+                </label>
                 <input
                   type="text"
                   value={editData.author}
@@ -466,10 +518,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                   placeholder="Enter author name"
                 />
               </div>
-              
+
               <div className="bg-[#F0F8FF] border border-[#B0D4F1] rounded-[8px] p-3">
                 <p className="text-[12px] text-[#1E40AF] font-medium">
-                  💡 Note: Updating title or author will automatically generate a new front cover image
+                  💡 Note: Updating title or author will automatically generate
+                  a new front cover image
                 </p>
               </div>
             </>
@@ -485,7 +538,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                 onChange={(e) => handleInputChange("text", e.target.value)}
                 rows={6}
                 className="w-full p-2 border border-[#E5E5E5] rounded-[8px] text-[14px] focus:outline-none focus:border-[#8C5AF2] resize-none"
-                placeholder={isBackCover ? "Enter back cover content" : "Enter story content"}
+                placeholder={
+                  isBackCover
+                    ? "Enter back cover content"
+                    : "Enter story content"
+                }
               />
             </div>
           )}
@@ -496,7 +553,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
               disabled={editLoading || imageGenerating}
               className="px-4 py-2 bg-[#8C5AF2] text-white text-[14px] font-semibold rounded-[8px] hover:bg-[#7C4AE8] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {editLoading ? "Saving..." : imageGenerating ? "Generating Image..." : "Save Changes"}
+              {editLoading
+                ? "Saving..."
+                : imageGenerating
+                ? "Generating Image..."
+                : "Save Changes"}
             </button>
             <button
               onClick={() => setIsEditing(false)}
@@ -517,7 +578,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       onClose={onClose}
       title={modalLoading ? "Loading..." : getPageTitle()}
       maxWidth="max-w-[620px]"
-      className="mt-[81px]"
+      className="mt-[81px] select-none"
     >
       <div className="flex flex-wrap justify-center items-center flex-col-reverse gap-8 px-8 py-6">
         <div>
@@ -541,7 +602,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
               <div className="h-10 w-24 bg-gray-200 rounded animate-pulse" />
             </div>
           ) : (
-            <> 
+            <>
               {isEditing ? renderEditForm() : renderPageText()}
               <div className="mt-6">
                 <button
@@ -556,8 +617,6 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           )}
         </div>
 
-
-
         <div>
           <h3 className="text-lg md:text-xl font-story font-semibold text-gray-900 mb-4">
             Image Preview
@@ -565,13 +624,36 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           {modalLoading ? (
             <div className="w-[560px] h-[560px] bg-gray-200 rounded-[20px] animate-pulse" />
           ) : (
-            <div className="rounded-[20px] overflow-hidden relative">
+            <div
+              className="rounded-[20px] overflow-hidden relative"
+              onContextMenu={(e) => e.preventDefault()}
+              style={{ position: "relative" }}
+            >
               {getCurrentPageImage() ? (
                 <>
+                  {/* Protective overlay */}
+                  <div
+                    className="absolute inset-0 bg-transparent z-10"
+                    style={{
+                      ...secureImageStyles,
+                      background:
+                        "radial-gradient(transparent 95%, rgba(140, 90, 242, 0.03) 100%)",
+                    }}
+                  />
+
+                  {/* Main image with protection */}
                   <img
                     src={getCurrentPageImage()}
                     alt={getPageTitle()}
-                    className={`w-[560px] h-[560px] object-cover transition-opacity ${imageGenerating ? 'opacity-50' : 'opacity-100'}`}
+                    className={`w-[560px] h-[560px] object-cover transition-opacity ${
+                      imageGenerating ? "opacity-50" : "opacity-100"
+                    }`}
+                    style={{
+                      ...secureImageStyles,
+                      opacity: 0.99,
+                    }}
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = "none";
@@ -579,13 +661,38 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                         '<div class="w-[560px] h-[560px] flex items-center justify-center text-gray-500 bg-gray-100 rounded-[20px]">Failed to load image</div>';
                     }}
                   />
-                  
-                  {/* Image Generation Overlay */}
+
+                  {/* Subtle gradient overlay */}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        "linear-gradient(to bottom, transparent 90%, rgba(244, 243, 247, 0.1))",
+                      zIndex: 1,
+                      pointerEvents: "none",
+                    }}
+                  />
+
+                  {/* Watermark overlay */}
+                  <div
+                    className="absolute inset-0 flex items-center justify-center opacity-[0.03] select-none pointer-events-none"
+                    style={{
+                      transform: "rotate(-45deg)",
+                      fontSize: "2rem",
+                      zIndex: 2,
+                    }}
+                  >
+                    PREVIEW ONLY
+                  </div>
+
+                  {/* Generation overlay (existing code) */}
                   {imageGenerating && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-[20px]">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-[20px] z-20">
                       <div className="text-center text-white">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                        <p className="text-sm font-medium">Generating new image...</p>
+                        <p className="text-sm font-medium">
+                          Generating new image...
+                        </p>
                       </div>
                     </div>
                   )}
@@ -611,13 +718,17 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           </button>
 
           <div className="text-sm text-gray-600">
-            <span className="text-[#8C5AF2] font-semibold">{currentPage + 1}</span>
+            <span className="text-[#8C5AF2] font-semibold">
+              {currentPage + 1}
+            </span>
             <span className="mx-1">/</span>
             <span>{totalPages}</span>
           </div>
 
           <button
-            onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages - 1, currentPage + 1))
+            }
             disabled={currentPage === totalPages - 1}
             className="text-sm font-semibold text-[#8C5AF2] hover:text-violet-700 disabled:text-[#999999] disabled:cursor-not-allowed flex items-center"
           >
