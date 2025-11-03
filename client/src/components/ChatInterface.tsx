@@ -339,16 +339,14 @@ export default function ChatInterface({
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-2 sm:gap-3 ${
-                  message.isUser ? "flex-row-reverse" : "flex-row"
-                }`}
+                className={`flex gap-2 sm:gap-3 ${message.isUser ? "flex-row-reverse" : "flex-row"
+                  }`}
               >
                 <div
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.isUser
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.isUser
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
-                  }`}
+                    }`}
                 >
                   {message.isUser ? (
                     <UserIcon className="h-4 w-4" />
@@ -357,16 +355,14 @@ export default function ChatInterface({
                   )}
                 </div>
                 <div
-                  className={`max-w-[85%] sm:max-w-[80%] ${
-                    message.isUser ? "text-right" : "text-left"
-                  }`}
+                  className={`max-w-[85%] sm:max-w-[80%] ${message.isUser ? "text-right" : "text-left"
+                    }`}
                 >
                   <div
-                    className={`inline-block p-2 sm:p-3 rounded-lg font-story text-sm sm:text-base ${
-                      message.isUser
+                    className={`inline-block p-2 sm:p-3 rounded-lg font-story text-sm sm:text-base ${message.isUser
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground"
-                    }`}
+                      }`}
                   >
                     {message.content}
                   </div>
@@ -420,7 +416,7 @@ export default function ChatInterface({
                 </div>
 
                 <Select
-                required
+                  required
                   value={
                     selectedPageCount !== null
                       ? String(selectedPageCount)
