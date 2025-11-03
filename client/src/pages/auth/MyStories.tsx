@@ -35,7 +35,7 @@ type StoryPage = {
   storyId?: string;
   type?: string;
   title?: string;
-  author?: string;
+  authorName?: string;
 };
 
 type StoryDetails = {
@@ -49,7 +49,7 @@ type StoryDetails = {
   updatedAt: number;
   userId: string;
   pages?: StoryPage[];
-  author?: string;
+  authorName?: string;
 };
 
 type ShippingAddress = {
