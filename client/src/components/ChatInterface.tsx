@@ -420,6 +420,7 @@ export default function ChatInterface({
                 </div>
 
                 <Select
+                required
                   value={
                     selectedPageCount !== null
                       ? String(selectedPageCount)
