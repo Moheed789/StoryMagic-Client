@@ -486,12 +486,14 @@ export default function ChatInterface({
               <Input
                 placeholder="Story Title (e.g., The Brave Little Mouse)"
                 value={storyTitle ?? ""}
+                className="text-[11px] md:text-[14px]"
                 onChange={(e) => setStoryTitle(e.target.value)}
                 disabled={createStoryMutation.isPending}
               />
               <Input
                 placeholder="Author Name"
                 value={authorName ?? ""}
+                className="text-[11px] md:text-[14px]"
                 onChange={(e) => setAuthorName(e.target.value)}
                 disabled={createStoryMutation.isPending}
               />
@@ -505,7 +507,7 @@ export default function ChatInterface({
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 disabled={createStoryMutation.isPending}
-                className="font-story"
+                className="font-story text-[11px] md:text-[14px]"
               />
               <Button
                 data-testid="button-send-message"
