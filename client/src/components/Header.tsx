@@ -46,7 +46,7 @@ export default function Header() {
         const offset =
           el.getBoundingClientRect().top +
           window.scrollY -
-          window.innerHeight / 3; 
+          window.innerHeight / 3;
         window.scrollTo({ top: offset, behavior: "smooth" });
       }
     };
@@ -118,10 +118,11 @@ export default function Header() {
                   >
                     {user.apiProfile?.fullName}
                     <ChevronDown
-                      className={`h-4 w-4 transform transition-transform duration-300  ${open
-                        ? "rotate-180 text-[#8C5AF2]"
-                        : "rotate-0 text-[#8C5AF2]"
-                        }`}
+                      className={`h-4 w-4 transform transition-transform duration-300  ${
+                        open
+                          ? "rotate-180 text-[#8C5AF2]"
+                          : "rotate-0 text-[#8C5AF2]"
+                      }`}
                     />
                   </Button>
 
@@ -149,17 +150,6 @@ export default function Header() {
                           <UserIcon className="h-4 w-4" />
                           <span>User Profile</span>
                         </button>
-
-                        {/* <button
-                          className="flex items-center gap-[17px] text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] text-[14px] w-full"
-                          onClick={() => {
-                            setOpen(false);
-                            navigate("/subscription");
-                          }}
-                        >
-                          <SettingsIcon className="h-4 w-4" />
-                          <span>Pricing Plan</span>
-                        </button> */}
                       </div>
 
                       <hr className="my-4 border-[#E8EDEB]" />
@@ -236,8 +226,6 @@ export default function Header() {
                     </div>
 
                     <hr className="my-4 border-[#E8EDEB]" />
-
-                    {/* Navigation Options */}
                     <div className="space-y-3 mb-4">
                       <button
                         className="flex items-center gap-3 text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-left text-[14px] p-2 rounded-lg hover:bg-gray-50"
@@ -249,16 +237,6 @@ export default function Header() {
                         <UserIcon className="h-4 w-4" />
                         <span>User Profile</span>
                       </button>
-
-                      {/* <button
-                        className="flex items-center gap-3 text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-left text-[14px] p-2 rounded-lg hover:bg-gray-50"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        <SettingsIcon className="h-4 w-4" />
-                        <span>Pricing Plan</span>
-                      </button> */}
                     </div>
 
                     <hr className="my-4 border-[#E8EDEB]" />
@@ -313,8 +291,6 @@ export default function Header() {
                     </div>
                   </>
                 )}
-
-
               </div>
             )}
           </div>

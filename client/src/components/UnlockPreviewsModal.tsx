@@ -6,13 +6,12 @@ import Modal from "./Modal";
 interface UnlockPreviewsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
   storyId: string;
 }
+
 const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
   isOpen,
   onClose,
-  onSuccess,
   storyId,
 }) => {
   const { toast } = useToast();
@@ -22,7 +21,6 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
     try {
       setUnlockLoading(true);
 
-      // Add validation for storyId
       if (!storyId) {
         toast({
           title: "Error",
@@ -53,7 +51,7 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            storyId: storyId, 
+            storyId,
             downloadOption: "pdf_only",
           }),
         }
@@ -72,13 +70,9 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
       if (checkoutUrl) {
         localStorage.setItem(
           "pendingPreviewUnlock",
-          JSON.stringify({
-            timestamp: Date.now(),
-          })
+          JSON.stringify({ storyId, timestamp: Date.now() })
         );
-
         window.location.href = checkoutUrl;
-        onSuccess?.();
       } else {
         toast({
           title: "Checkout Error",
@@ -107,10 +101,10 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
       <div className="p-8 text-center">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-[#8C5AF2] mb-2">
-            You've reached the end of your free previews
+            You’ve reached the end of your free previews
           </h2>
           <p className="text-slate-600">
-            Unlock unlimited access and keep discovering magical stories!
+            Unlock unlimited access and keep discovering magical stories.
           </p>
         </div>
 

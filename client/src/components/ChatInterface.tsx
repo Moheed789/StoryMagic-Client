@@ -326,7 +326,9 @@ export default function ChatInterface({
               <SparklesIcon className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-sm sm:text-base">Story Assistant</h3>
+              <h3 className="font-semibold text-sm sm:text-base">
+                Story Assistant
+              </h3>
               <p className="text-xs text-muted-foreground truncate">
                 Let's create your storybook together
               </p>
@@ -339,14 +341,16 @@ export default function ChatInterface({
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-2 sm:gap-3 ${message.isUser ? "flex-row-reverse" : "flex-row"
-                  }`}
+                className={`flex gap-2 sm:gap-3 ${
+                  message.isUser ? "flex-row-reverse" : "flex-row"
+                }`}
               >
                 <div
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.isUser
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    message.isUser
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
-                    }`}
+                  }`}
                 >
                   {message.isUser ? (
                     <UserIcon className="h-4 w-4" />
@@ -355,14 +359,16 @@ export default function ChatInterface({
                   )}
                 </div>
                 <div
-                  className={`max-w-[85%] sm:max-w-[80%] ${message.isUser ? "text-right" : "text-left"
-                    }`}
+                  className={`max-w-[85%] sm:max-w-[80%] ${
+                    message.isUser ? "text-right" : "text-left"
+                  }`}
                 >
                   <div
-                    className={`inline-block p-2 sm:p-3 rounded-lg font-story text-sm sm:text-base ${message.isUser
+                    className={`inline-block p-2 sm:p-3 rounded-lg font-story text-sm sm:text-base ${
+                      message.isUser
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground"
-                      }`}
+                    }`}
                   >
                     {message.content}
                   </div>
@@ -410,7 +416,10 @@ export default function ChatInterface({
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="page-count" className="text-sm font-medium whitespace-nowrap">
+                  <Label
+                    htmlFor="page-count"
+                    className="text-sm font-medium whitespace-nowrap"
+                  >
                     Story Length:
                   </Label>
                 </div>
@@ -444,7 +453,10 @@ export default function ChatInterface({
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="target-age" className="text-sm font-medium whitespace-nowrap">
+                  <Label
+                    htmlFor="target-age"
+                    className="text-sm font-medium whitespace-nowrap"
+                  >
                     Target Age:
                   </Label>
                 </div>
@@ -474,12 +486,14 @@ export default function ChatInterface({
               <Input
                 placeholder="Story Title (e.g., The Brave Little Mouse)"
                 value={storyTitle ?? ""}
+                className="text-[11px] md:text-[14px]"
                 onChange={(e) => setStoryTitle(e.target.value)}
                 disabled={createStoryMutation.isPending}
               />
               <Input
                 placeholder="Author Name"
                 value={authorName ?? ""}
+                className="text-[11px] md:text-[14px]"
                 onChange={(e) => setAuthorName(e.target.value)}
                 disabled={createStoryMutation.isPending}
               />
@@ -493,7 +507,7 @@ export default function ChatInterface({
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 disabled={createStoryMutation.isPending}
-                className="font-story"
+                className="font-story text-[11px] md:text-[14px]"
               />
               <Button
                 data-testid="button-send-message"
