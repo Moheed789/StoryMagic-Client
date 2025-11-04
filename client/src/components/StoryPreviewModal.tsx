@@ -182,8 +182,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       }
 
       const generateResponse = await fetch(
-        `${
-          import.meta.env.VITE_BASE_URL
+        `${import.meta.env.VITE_BASE_URL
         }/stories/${storyId}/pages/${pageNumber}/generate-image`,
         {
           method: "POST",
@@ -226,8 +225,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
         try {
           const statusResponse = await fetch(
-            `${
-              import.meta.env.VITE_BASE_URL
+            `${import.meta.env.VITE_BASE_URL
             }/stories/${storyId}/pages/${pageNumber}/image-status`,
             {
               method: "GET",
@@ -340,8 +338,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       }
 
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BASE_URL
+        `${import.meta.env.VITE_BASE_URL
         }/stories/${storyIdFromPages}/page/${pageNo}`,
         {
           method: "PUT",
@@ -556,8 +553,8 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
               {editLoading
                 ? "Saving..."
                 : imageGenerating
-                ? "Generating Image..."
-                : "Save Changes"}
+                  ? "Generating Image..."
+                  : "Save Changes"}
             </button>
             <button
               onClick={() => setIsEditing(false)}
@@ -605,13 +602,15 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
             <>
               {isEditing ? renderEditForm() : renderPageText()}
               <div className="mt-6">
-                <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  disabled={editLoading}
-                  className="inline-flex h-10 items-center px-4 rounded-md bg-[#8C5AF2] text-white text-sm font-semibold hover:bg-[#7C4AE8] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isEditing ? "Cancel Edit" : "Edit Story"}
-                </button>
+                {!(currentPage === 0 && frontCover || currentPage === -1 && backCover) && (
+                  <button
+                    onClick={() => setIsEditing(!isEditing)}
+                    disabled={editLoading}
+                    className="inline-flex h-10 items-center px-4 rounded-md bg-[#8C5AF2] text-white text-sm font-semibold hover:bg-[#7C4AE8] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isEditing ? "Cancel Edit" : "Edit Story"}
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -645,9 +644,8 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                   <img
                     src={getCurrentPageImage()}
                     alt={getPageTitle()}
-                    className={`w-[560px] h-[560px] object-cover transition-opacity ${
-                      imageGenerating ? "opacity-50" : "opacity-100"
-                    }`}
+                    className={`w-[560px] h-[560px] object-cover transition-opacity ${imageGenerating ? "opacity-50" : "opacity-100"
+                      }`}
                     style={{
                       ...secureImageStyles,
                       opacity: 0.99,

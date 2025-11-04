@@ -22,7 +22,6 @@ const UnlockPreviewsModal: React.FC<UnlockPreviewsModalProps> = ({
     try {
       setUnlockLoading(true);
 
-      // Add validation for storyId
       if (!storyId) {
         toast({
           title: "Error",
