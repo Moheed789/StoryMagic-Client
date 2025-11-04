@@ -317,7 +317,7 @@ export default function ChatInterface({
   return (
     <>
       <Card
-        className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col"
+        className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col mb-[65px]"
         id="bottom"
       >
         <div className="p-3 sm:p-4 border-b border-card-border">
@@ -450,7 +450,7 @@ export default function ChatInterface({
               </div>
 
               {/* Target Age */}
-              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto mb-2">
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <UsersIcon className="h-4 w-4 text-muted-foreground" />
                   <Label

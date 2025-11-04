@@ -84,7 +84,7 @@ export default function Header() {
             </h1>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1 md:gap-3 relative">
+          <nav className="hidden md:flex items-center gap-1 md:gap-3 relative ">
             {user ? (
               <>
                 <Button
@@ -127,7 +127,7 @@ export default function Header() {
                   </Button>
 
                   {open && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
+                    <div className="absolute right-0 mt-[14px] w-64 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
                       <div className="mb-3">
                         <h3 className="text-[16px] font-story font-[600] text-[#002014]">
                           {user.apiProfile?.fullName}
@@ -202,7 +202,7 @@ export default function Header() {
             </Button>
 
             {mobileMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
+              <div className="absolute right-0 mt-[14px] w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
                 {user ? (
                   <>
                     <div className="mb-4 flex items-center justify-between">
@@ -247,8 +247,9 @@ export default function Header() {
                         className="w-full bg-[#8C5AF2] text-white hover:bg-[#7B4CEB] gap-2"
                         onClick={() => {
                           setMobileMenuOpen(false);
-                          goHomeBottom();
+                          goToCartoonStyle();
                         }}
+
                       >
                         Create Story
                       </Button>

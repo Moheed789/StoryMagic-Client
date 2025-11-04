@@ -446,7 +446,7 @@ export default function StoryPageEditor({
                 <img
                   src={img}
                   alt={`Illustration — ${title}`}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full  rounded-lg"
                 />
               ) : shouldShowLoader ? (
                 <div className="text-center text-muted-foreground">

@@ -887,10 +887,10 @@ const MyStories: React.FC = () => {
   const heading = useMemo(
     () => (
       <div className="text-center mb-8 md:mb-10 md:mt-[105px]">
-        <h1 className="items-baseline text-[#24212C] font-display text-[40px] font-normal gap-2 md:text-[64px] tracking-tight">
+        <h1 className="items-baseline text-[#24212C] font-display text-[34px] font-normal gap-2 md:text-[64px] tracking-tight">
           Your Magical&nbsp;<span className="text-[#8C5AF2]">Stories</span>
         </h1>
-        <p className="text-[#6F677E] font-[500] text-[24px] font-story mt-[16px]">
+        <p className="text-[#6F677E] font-[500] text-[18px] md:text-[24px] font-story mt-[16px]">
           Browse, download, or relive the stories you've created with AI.
         </p>
       </div>
@@ -984,7 +984,7 @@ const MyStories: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-6">
+                <div className="p-4 md:p-6 ">
                   <h3 className="text-[24px] font-bold font-display text-[#333333] mb-4 leading-tight">
                     {story.title}
                   </h3>
@@ -1009,10 +1009,10 @@ const MyStories: React.FC = () => {
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1">
-                          <span className="text-[14px] text-[#333333] font-medium">
+                          <span className="text-[12px] md:text-[14px] text-[#333333] font-medium">
                             Downloadable PDF Only.
                           </span>
-                          <span className="text-[14px] font-bold text-[#8C5AF2] ml-1">
+                          <span className="text-[12px] md:text-[14px] font-bold text-[#8C5AF2] ml-1">
                             $2.99
                           </span>
                         </div>
@@ -1020,7 +1020,7 @@ const MyStories: React.FC = () => {
 
                       <div>
                         {pdfPurchased ? (
-                          <span className="text-[#28A745] flex items-center gap-[6px] text-[14px] font-semibold">
+                          <span className="text-[#28A745] flex items-center gap-[6px] text-[12px] md:text-[14px] font-semibold">
                             Purchased <Check size={14} />
                           </span>
                         ) : (
@@ -1030,7 +1030,7 @@ const MyStories: React.FC = () => {
                               handlePurchase(story.storyId, "pdf_only");
                             }}
                             disabled={pdfLoading}
-                            className="text-[#8C5AF2] underline text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-[#8C5AF2] underline text-[12px] md:text-[14px] font-medium transition hover:text-[#7C4AE8] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {pdfLoading ? "Processing..." : "Buy Now"}
                           </button>
@@ -1056,7 +1056,7 @@ const MyStories: React.FC = () => {
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex-1 w-full max-w-[249px]">
-                          <span className="text-[14px] text-[#333333] font-medium">
+                          <span className="text-[12px] md:text-[14px] text-[#333333] font-medium">
                             Downloadable PDF + Professionally Printed Book
                           </span>
                           <span className="text-[12px] text-slate-500 block mt-1">
@@ -1067,7 +1067,7 @@ const MyStories: React.FC = () => {
 
                       <div>
                         {bookPurchased ? (
-                          <span className="text-[#28A745] flex items-center gap-[6px] text-[14px] font-semibold">
+                          <span className="text-[#28A745] flex items-center gap-[6px] text-[12px] md:text-[14px] font-semibold">
                             Purchased <Check size={14} />
                           </span>
                         ) : (
