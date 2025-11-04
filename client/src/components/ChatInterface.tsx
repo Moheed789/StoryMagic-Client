@@ -172,7 +172,7 @@ export default function ChatInterface({
       const title = safeTrim(storyTitle);
       const author = safeTrim(authorName);
       if (title) payload.title = title;
-      if (author) payload.author = author;
+      if (author) payload.authorName = author;
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -428,7 +428,7 @@ export default function ChatInterface({
                   <SelectTrigger
                     id="page-count"
                     data-testid="select-page-count"
-                    className="w-full sm:w-32 min-w-[120px]"
+                    className="w-full sm:w-32 min-w-[140px]"
                   >
                     <SelectValue placeholder="Select pages" />
                   </SelectTrigger>
