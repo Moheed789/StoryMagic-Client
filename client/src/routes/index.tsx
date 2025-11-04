@@ -12,6 +12,7 @@ import StoryCreator from "@/pages/auth/StoryCreator";
 import MyStories from "@/pages/auth/MyStories";
 import Subscription from "@/pages/auth/Subscription";
 import UserProfile from "@/pages/auth/UserProfile";
+import ExamplesSection from "@/pages/auth/Examples";
 
 interface RouteConfig {
   path: string;
@@ -97,6 +98,11 @@ export const routes: RouteConfig[] = [
   {
     path: "/profile",
     component: <UserProfile/>,
+    isProtected: true,
+  },
+  {
+    path: "/examples",
+    component: <ExamplesSection/>,
     isProtected: true,
   },
 ];

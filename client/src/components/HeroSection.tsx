@@ -8,8 +8,11 @@ import {
 } from "lucide-react";
 import heroImage from "@assets/generated_images/Magical_children_reading_storybooks_f141e6f5.png";
 import processIcons from "@assets/generated_images/Storybook_creation_process_icons_11678eb6.png";
+import { useLocation } from "wouter";
 
 export default function HeroSection() {
+  const [loc, navigate] = useLocation();
+
   const steps = [
     {
       icon: SparklesIcon,
@@ -88,7 +91,7 @@ export default function HeroSection() {
                   variant="outline"
                   size="lg"
                   className="backdrop-blur-sm"
-                  onClick={() => console.log("See examples clicked")}
+                  onClick={() => navigate("/examples")}
                 >
                   See Examples
                 </Button>
