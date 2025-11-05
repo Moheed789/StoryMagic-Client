@@ -13,7 +13,7 @@ export default function ExamplesSection() {
   return (
     <main className="max-w-[1120px] mx-auto px-6 py-12">
       <header className="text-center mb-6">
-        <h2 className="text-[40px] md:text-[48px] font-extrabold text-[#27252E]">
+        <h2 className="text-[40px] md:text-[48px] font-extrabold text-[#27252E] font-display">
           See What You <span className="text-[#8C5AF2]">Can Make</span>
         </h2>
         <p className="text-[12px] md:text-[13px] text-[#8E8A99] mt-2 max-w-[540px] mx-auto">
