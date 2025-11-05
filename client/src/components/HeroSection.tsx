@@ -71,7 +71,7 @@ export default function HeroSection() {
                 <Button
                   data-testid="button-start-creating"
                   size="lg"
-                  className="gap-2 font-semibold"
+                  className=" gap-2 w-[150px] text-[12px] md:text-[14px] md:w-[184px] font-semibold"
                   onClick={() => {
                     const el = document.getElementById("cartoon-style");
                     if (el) {
@@ -90,7 +90,7 @@ export default function HeroSection() {
                   data-testid="button-see-examples"
                   variant="outline"
                   size="lg"
-                  className="backdrop-blur-sm"
+                  className="backdrop-blur-sm w-[140px] text-[12px] md:text-[14px] md:w-[164px]"
                   onClick={() => navigate("/examples")}
                 >
                   See Examples

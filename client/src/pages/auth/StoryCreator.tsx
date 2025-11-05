@@ -25,7 +25,7 @@ export default function StoryCreator() {
         selectedStyle={selectedCartoonStyle}
         onStyleChange={setSelectedCartoonStyle}
       />
-      <div className="mx-10">
+      <div className=" mx-7 md:mx-10">
         <ChatInterface selectedCartoonStyle={selectedCartoonStyle} onStoryGenerated={handleStoryGenerated} />
       </div>
     </div>
