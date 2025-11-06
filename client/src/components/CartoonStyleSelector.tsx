@@ -20,8 +20,8 @@ interface CartoonStyleOption {
   id: CartoonStyle;
   name: string;
   description: string;
-  previewImage?: string; // Will be populated when user provides images
-  indexNo?: number; // Optional index for ordering or reference
+  previewImage?: string;
+  indexNo?: number; 
 }
 
 const cartoonStyles: CartoonStyleOption[] = [
@@ -167,7 +167,6 @@ export function CartoonStyleSelector({
           </Carousel>
         </div>
 
-        {/* Mobile navigation dots */}
         <div className="flex justify-center mt-6 gap-2 md:hidden">
           {cartoonStyles.map((style) => (
             <button

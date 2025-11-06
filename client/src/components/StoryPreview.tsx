@@ -138,7 +138,6 @@ export default function StoryPreview({
       </Card>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Page Navigation */}
         <Card className="p-4">
           <h3 className="font-semibold mb-4">Pages</h3>
           <ScrollArea className="h-[400px]">
