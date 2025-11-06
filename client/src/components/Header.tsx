@@ -127,7 +127,7 @@ export default function Header() {
                   </Button>
 
                   {open && (
-                    <div className="absolute right-0 mt-[14px] w-64 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
+                    <div className="absolute right-0 mt-[32px] w-64 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
                       <div className="mb-3">
                         <h3 className="text-[16px] font-story font-[600] text-[#002014]">
                           {user.apiProfile?.fullName}
@@ -159,7 +159,7 @@ export default function Header() {
                           setOpen(false);
                           onLogout();
                         }}
-                        className="bg-[#EE282F] hover:bg-[#d53c2f] text-white w-full mt-2 gap-2 font-semibold "
+                        className="bg-[#EE282F] hover:bg-[#d53c2f] text-white w-full mt-2 gap-2 font-semibold border-none "
                       >
                         <LogOutIcon className="h-4 w-4" />
                         Logout
@@ -202,7 +202,7 @@ export default function Header() {
             </Button>
 
             {mobileMenuOpen && (
-              <div className="absolute right-0 mt-[14px] w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
+              <div className="absolute right-0 mt-[32px] w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
                 {user ? (
                   <>
                     <div className="mb-4 flex items-center justify-between">
@@ -249,7 +249,6 @@ export default function Header() {
                           setMobileMenuOpen(false);
                           goToCartoonStyle();
                         }}
-
                       >
                         Create Story
                       </Button>
