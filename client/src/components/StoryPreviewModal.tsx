@@ -451,7 +451,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
     if (pageText && typeof pageText === "string") {
       return (
         <div className="mb-6" onContextMenu={(e) => e.preventDefault()}>
-          <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3 md:mb-4">
+          <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3 md:mb-4 ">
             {currentPage === totalPages - 1
               ? "Back Cover Content"
               : "Story Content"}
@@ -479,11 +479,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
     const isRegularPage = !isFrontCover && !isBackCover;
 
     return (
-      <div className="mb-6">
+      <div className="mb-6 ">
         <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3 md:mb-4">
           Edit Story Content
         </h3>
-        <div className="rounded-[20px] bg-[#F8F9FA] border border-[#E5E5E5] p-4 space-y-4">
+        <div className="rounded-[20px] bg-[#F8F9FA] border border-[#E5E5E5] p-4 space-y-4 ">
           {isFrontCover && (
             <>
               <div>
@@ -539,7 +539,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
             </div>
           )}
 
-          <div className="flex flex-wrap gap-3 pt-2">
+          <div className="flex flex-wrap gap-3 pt-2 ">
             <button
               onClick={handleEditStory}
               disabled={editLoading || imageGenerating}
@@ -570,10 +570,10 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       onClose={onClose}
       title={modalLoading ? "Loading..." : getPageTitle()}
       maxWidth="max-w-[95vw] md:max-w-5xl"
-      className="mt-8 sm:mt-10 select-none"
+      className="mt-16 sm:mt-16 select-none"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-4 sm:px-6 md:px-8 py-6">
-        <div className="order-2 md:order-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-4 sm:px-6 md:px-8 py-6 ">
+        <div className="order-2 md:order-1 ">
           {modalLoading ? (
             <div className="space-y-6">
               <div className="space-y-3">
@@ -611,7 +611,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           )}
         </div>
 
-        <div className="order-1 md:order-2">
+        <div className="order-1 md:order-2  ">
           <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3 md:mb-4">
             Image Preview
           </h3>
@@ -691,7 +691,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
         </div>
       </div>
       {!modalLoading && modalStory && totalPages > 0 && (
-        <div className="w-full flex items-center justify-between px-4 sm:px-6 md:px-8 mb-4">
+        <div className="w-full flex items-center justify-between px-4 sm:px-6 md:px-8 mb-4 ">
           <button
             onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}
