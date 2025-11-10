@@ -3,13 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import EmailVerificationCard from "./EmailVerification";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type Form = { code: string };
 
 export default function VerifyForgotPassword() {
   const [, navigate] = useLocation();
-  const { forgotPassword } = useAuth();
+  const { forgotPassword, verifyForgotCode } = useAuth();
   const qs = useMemo(() => new URLSearchParams(window.location.search), []);
   const email = qs.get("email") || "";
 
@@ -20,22 +21,52 @@ export default function VerifyForgotPassword() {
   } = useForm<Form>({ mode: "onChange" });
 
   const [serverError, setServerError] = useState<string | null>(null);
-  const [secondsLeft, setSecondsLeft] = useState(90);
+  const [secondsLeft, setSecondsLeft] = useState(60);
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
-    const t = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => clearInterval(timer);
   }, [secondsLeft]);
 
-  const onConfirm = handleSubmit(({ code }) => {
-    navigate(
-      `/create-new-password?email=${encodeURIComponent(
-        email
-      )}&code=${encodeURIComponent(code)}`
-    );
-  });
+  // const onConfirm = handleSubmit(async ({ code }) => {
+  //   setPending(true);
+  //   setServerError(null);
+  //   try {
+  //     const valid = await verifyForgotCode(email, code);
+  //     if (!valid) {
+  //       setServerError("Invalid or expired verification code.");
+  //       return;
+  //     }
+  //     navigate(
+  //       `/create-new-password?email=${encodeURIComponent(
+  //         email
+  //       )}&code=${encodeURIComponent(code)}`
+  //     );
+  //   } catch (err: any) {
+  //     setServerError(err.message || "Verification failed");
+  //   } finally {
+  //     setPending(false);
+  //   }
+  // });
+
+  const onConfirm = handleSubmit(async ({ code }) => {
+  setPending(true);
+  setServerError(null);
+  try {
+    const valid = await verifyForgotCode(email, code);
+    if (!valid) {
+      setServerError("Invalid or expired verification code.");
+      return;
+    }
+    navigate(`/create-new-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`);
+  } catch (err: any) {
+    setServerError(err.message || "Verification failed. Please try again.");
+  } finally {
+    setPending(false);
+  }
+});
 
   const onResend = async () => {
     try {
@@ -49,15 +80,57 @@ export default function VerifyForgotPassword() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#E7E4EC] px-4">
-      <EmailVerificationCard
-        secondsLeft={secondsLeft}
-        serverError={serverError}
-        registerCode={register("code", { required: "Code is required" })}
-        codeError={errors.code?.message}
-        onConfirm={onConfirm}
-        onResend={onResend}
-        pending={pending}
-      />
+      <div className="bg-white p-6 border border-[#CCD8D3] rounded-[20px] w-full max-w-[460px]">
+        <form onSubmit={onConfirm}>
+          <h1 className="text-center text-[#8C5AF2] text-[26px] font-display">
+            Verify Code
+          </h1>
+          <p className="text-[#BBB0CF] text-[14px] text-center mt-2">
+            Enter the verification code sent to your email
+          </p>
+
+          <div className="mt-[25px]">
+            <label className="text-[16px] text-[#999999] font-story">
+              Code
+            </label>
+            <Input
+              placeholder="Enter verification code"
+              {...register("code", { required: "Code is required" })}
+              className="bg-[#F8F8F8] h-[43px] border border-[#BABABA] placeholder:text-[#999999] mt-1"
+            />
+            {errors.code && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.code.message}
+              </p>
+            )}
+            {serverError && (
+              <p className="text-red-500 text-sm mt-1">{serverError}</p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={pending}
+              className="w-full bg-[#8C5AF2] text-white mt-[25px]"
+            >
+              {pending ? "Verifying..." : "Verify Code"}
+            </Button>
+
+            <div className="mt-3 text-center text-sm text-[#888]">
+              Didn’t receive a code?{" "}
+              <button
+                type="button"
+                onClick={onResend}
+                disabled={secondsLeft > 0}
+                className="text-[#8C5AF2] hover:underline"
+              >
+                {secondsLeft > 0
+                  ? `Resend in ${secondsLeft}s`
+                  : "Resend Code"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

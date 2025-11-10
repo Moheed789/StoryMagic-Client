@@ -79,7 +79,6 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
     author: "",
     text: "",
   });
- 
 
   useEffect(() => {
     setLocalModalStory(modalStory);
@@ -406,7 +405,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
   const handleInputChange = (field: string, value: string) => {
     setEditData((prev) => ({ ...prev, [field]: value }));
   };
-   const isFrontCover = currentPage === 0 && !!frontCover;
+  const isFrontCover = currentPage === 0 && !!frontCover;
   const isBackCover = currentPage === totalPages - 1 && !!backCover;
 
   const renderPageText = () => {
@@ -570,7 +569,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       onClose={onClose}
       title={modalLoading ? "Loading..." : getPageTitle()}
       maxWidth="max-w-[95vw] md:max-w-5xl"
-      className="mt-16 sm:mt-16 select-none"
+      className="max-h-[85vh] sm:h-auto overflow-y-auto leading-none"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-4 sm:px-6 md:px-8 py-6 ">
         <div className="order-2 md:order-1 ">
@@ -691,7 +690,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
         </div>
       </div>
       {!modalLoading && modalStory && totalPages > 0 && (
-        <div className="w-full flex items-center justify-between px-4 sm:px-6 md:px-8 mb-4 ">
+        <div className="w-full flex items-center justify-between px-4 sm:px-6 md:px-8 mb-10 sm:mb-4">
           <button
             onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}

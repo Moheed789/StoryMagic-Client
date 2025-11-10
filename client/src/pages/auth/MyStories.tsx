@@ -8,6 +8,7 @@ import UnlockPreviewsModal from "../../components/UnlockPreviewsModal";
 import BookCustomizationModal from "../../components/BookCustomizationModal";
 import { Check, Trash, Loader } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
+import { LoadingSpinner } from "@/components/ui/loading";
 
 type Story = {
   storyId: string;
@@ -89,6 +90,8 @@ const FREE_PREVIEW_LIMIT = 2;
 const MyStories: React.FC = () => {
   const { toast } = useToast();
   const [stories, setStories] = useState<Story[]>([]);
+  console.log("Stories state:", [...Array(stories?.length)]);
+  console.log("Stories 1:", stories?.length);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -512,9 +515,8 @@ const MyStories: React.FC = () => {
           country: form.shipping_address.country_code,
           phone: form.shipping_address.phone_number,
         },
-        
       };
-console.log("Book purchase payload:", payload);
+      console.log("Book purchase payload:", payload);
       const res = await fetch(
         `${import.meta.env.VITE_BASE_URL}/stripe/story-download-book`,
         {
@@ -911,21 +913,8 @@ console.log("Book purchase payload:", payload);
     return (
       <div className="max-w-[1579px] mx-auto px-4 py-10">
         {heading}
-        <div className="flex flex-wrap gap-[44px] justify-center md:justify-start">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse"
-            >
-              <div className="bg-slate-200 aspect-[16/9]" />
-              <div className="p-4">
-                <div className="h-5 w-40 bg-slate-200 rounded mb-2" />
-                <div className="h-3 w-56 bg-slate-200 rounded mb-4" />
-                <div className="h-10 w-full bg-slate-200 rounded mb-2" />
-                <div className="h-10 w-full bg-slate-100 rounded" />
-              </div>
-            </div>
-          ))}
+        <div className="flex flex-wrap gap-[44px] justify-center">
+          <LoadingSpinner size="lg" />
         </div>
       </div>
     );
@@ -1057,7 +1046,7 @@ console.log("Book purchase payload:", payload);
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="flex-1 w-full max-w-[249px]">
+                        <div className="flex-1 w-full max-w-[205px]">
                           <span className="text-[12px] md:text-[14px] text-[#333333] font-medium">
                             Downloadable PDF + Professionally Printed Book
                           </span>

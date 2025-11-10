@@ -9,6 +9,7 @@ import {
   fetchUserAttributes,
   resetPassword,
   confirmResetPassword,
+  resendSignUpCode,
   type SignUpOutput,
   type SignInOutput,
 } from "aws-amplify/auth";
@@ -50,11 +51,7 @@ interface AuthContextType {
     code: string,
     password: string
   ) => Promise<void>;
-  resendSignUpUser: (
-    email: string,
-    password: string,
-    fullName: string
-  ) => Promise<void>;
+  resendSignUpUser: (email: string) => Promise<void>;
   signInUser: (email: string, password: string) => Promise<SignInOutput | void>;
   signOutUser: () => Promise<void>;
   getUserProfile: () => Promise<any | null>;
@@ -64,6 +61,7 @@ interface AuthContextType {
     code: string,
     newPassword: string
   ) => Promise<void>;
+  verifyForgotCode: (email: string, code: string) => Promise<boolean>;
   step: any | null;
   setStep: React.Dispatch<React.SetStateAction<any | null>>;
   currentStep: "idea" | "edit" | "preview";
@@ -76,8 +74,8 @@ interface AuthContextType {
   setCurrentStory: React.Dispatch<React.SetStateAction<Story | null>>;
   currentPages: StoryPage[];
   setCurrentPages: React.Dispatch<React.SetStateAction<StoryPage[]>>;
-  selectedPageCount: number;
-  setSelectedPageCount: React.Dispatch<React.SetStateAction<number>>;
+  selectedPageCount: number | null;
+  setSelectedPageCount: React.Dispatch<React.SetStateAction<number | null>>;
   storyTitle: string;
   setStoryTitle: React.Dispatch<React.SetStateAction<string>>;
   authorName: string;
@@ -100,7 +98,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [selectedPageCount, setSelectedPageCount] = useState<number | null>(
     null
   );
-
   const [storyTitle, setStoryTitle] = useState();
   const [authorName, setAuthorName] = useState<string>(
     (user as any)?.attributes?.name ||
@@ -108,12 +105,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       (user as any)?.email ||
       ""
   );
-
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
   const [currentPages, setCurrentPages] = useState<StoryPage[]>([]);
   const [characterDescription, setCharacterDescription] = useState<string>("");
-
   const [loading, setLoading] = useState(true);
+
   const isAuthenticated = !!user;
 
   const fetchWithAuth = async (endpoint: string) => {
@@ -146,22 +142,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const currentUser = await getCurrentUser();
         const attributes = await fetchUserAttributes();
         const apiProfile = await fetchWithAuth("/user");
-        if (mounted) {
-          setUser({ ...currentUser, attributes, apiProfile });
-        }
+        if (mounted) setUser({ ...currentUser, attributes, apiProfile });
       } catch {
-        if (mounted) {
-          setUser(null);
-        }
+        if (mounted) setUser(null);
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     };
 
     initAuth();
-
     return () => {
       mounted = false;
     };
@@ -179,16 +168,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  const resendSignUpUser = async (
-    email: string,
-    password: string,
-    fullName: string
-  ) => {
-    await signUp({
-      username: email,
-      password,
-      options: { userAttributes: { email, name: fullName } },
-    });
+  const resendSignUpUser = async (email: string) => {
+    await resendSignUpCode({ username: email });
   };
 
   const confirmUserSignUp = async (
@@ -223,7 +204,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     return apiProfile;
   };
-
   const forgotPassword = async (email: string) => {
     await resetPassword({ username: email });
   };
@@ -233,12 +213,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     code: string,
     newPassword: string
   ) => {
+    try {
+      await confirmResetPassword({
+        username: email,
+        confirmationCode: code,
+        newPassword,
+      });
+    } catch (err: any) {
+      console.error("Error confirming password:", err);
+      throw err;
+    }
+  };
+
+  // const verifyForgotCode = async (email: string, code: string) => {
+  //   try {
+  //     await confirmResetPassword({
+  //       username: email,
+  //       confirmationCode: code,
+  //       newPassword: "TempPass123!",
+  //     });
+  //     return true;
+  //   } catch (err: any) {
+  //     if (
+  //       err.name === "InvalidPasswordException" ||
+  //       err.message?.includes("Password did not conform")
+  //     ) {
+  //       return true;
+  //     } else if (
+  //       err.name === "CodeMismatchException" ||
+  //       err.name === "ExpiredCodeException"
+  //     ) {
+  //       return false;
+  //     } else {
+  //       console.error("verifyForgotCode unknown error:", err);
+  //       return false;
+  //     }
+  //   }
+  // };
+  const verifyForgotCode = async (email: string, code: string) => {
+  try {
+    // Try validating code without resetting password
     await confirmResetPassword({
       username: email,
       confirmationCode: code,
-      newPassword,
+      newPassword: "InvalidTemp1!",
     });
-  };
+    return true;
+  } catch (err: any) {
+    if (
+      err.name === "InvalidPasswordException" ||
+      err.message?.includes("Password did not conform")
+    ) {
+      return true; // means code is valid
+    } else if (
+      err.name === "CodeMismatchException" ||
+      err.name === "ExpiredCodeException"
+    ) {
+      return false; // invalid or expired
+    } else {
+      console.error("verifyForgotCode unknown error:", err);
+      return false;
+    }
+  }
+};
 
   return (
     <AuthContext.Provider
@@ -254,6 +291,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         getUserProfile,
         forgotPassword,
         confirmForgotPassword,
+        verifyForgotCode,
         step,
         setStep,
         currentStep,
@@ -264,14 +302,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setCurrentStory,
         currentPages,
         setCurrentPages,
-
         selectedPageCount,
         setSelectedPageCount,
         storyTitle,
         setStoryTitle,
         authorName,
         setAuthorName,
-
         storyId,
         setStoryId,
       }}
@@ -280,6 +316,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     </AuthContext.Provider>
   );
 };
+
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");

@@ -20,7 +20,7 @@ export default function ForgotPassword() {
       await forgotPassword(email);
       navigate(`/verify-forgot-password?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
-      setError(err.message || "Failed to send code");
+      setError(err.message || "Failed to send verification code");
     } finally {
       setPending(false);
     }
@@ -34,8 +34,7 @@ export default function ForgotPassword() {
             Forgot Your Password?
           </h1>
           <p className="mt-[14px] text-[#BBB0CF] text-[14px] font-sans text-center">
-            Please enter your email below and we’ll send you a verification
-            code.
+            Enter your email and we’ll send you a verification code.
           </p>
 
           <div className="mt-[22px]">

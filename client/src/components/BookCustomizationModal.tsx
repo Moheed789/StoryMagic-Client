@@ -28,13 +28,23 @@ const PAGE_PRICES: Record<"10" | "15" | "20", number> = {
   "20": 20.99,
 };
 
+// ✅ FIX ADDED BELOW
 const SHIPPING_PRICES: Record<
   "standard" | "express",
   { price: number; label: string; eta: string }
 > = {
-  standard: { price: 6.69, label: "Standard", eta: "11–13 Days" },
-  express: { price: 21.74, label: "Express", eta: "6–8 Days" },
+  standard: {
+    price: 5.99,
+    label: "Standard Shipping",
+    eta: "3–5 business days",
+  },
+  express: {
+    price: 9.99,
+    label: "Express Shipping",
+    eta: "1–2 business days",
+  },
 };
+// ✅ FIX END
 
 const ZIP_RANGES: Record<string, Array<{ start: number; end: number }>> = {
   AL: [{ start: 35000, end: 36999 }],
@@ -198,6 +208,8 @@ const formatUSPhone = (digits: string) => {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 };
 
+// ✅ Rest of your original file remains same below
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -351,7 +363,7 @@ const BookCustomizationModal: React.FC<Props> = ({
       onClose={onClose}
       title="Order your Printed Book"
       maxWidth="w-full sm:max-w-[580px]"
-      className="max-h-[100vh] mt-24 mb-7 overflow-y-auto"
+      className="max-h-[85vh] sm:h-auto overflow-y-auto leading-none"
     >
       <div className="pb-6 px-4 sm:px-6 space-y-5">
         <div>

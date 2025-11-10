@@ -42,6 +42,7 @@ export default function EmailVerificationCard({
             <Input
               inputMode="numeric"
               placeholder="Enter 6-digit code"
+              maxLength={6}
               className="bg-[#F8F8F8] h-[43px] border border-[#BABABA] placeholder:text-[#999999]"
               {...registerCode}
             />
@@ -77,9 +78,7 @@ export default function EmailVerificationCard({
               Resend
             </button>
             <p className="text-center font-mono text-[14px] text-[#8DA99E]">
-              {secondsLeft > 0
-                ? `0:${String(secondsLeft).padStart(2, "0")}`
-                : "You can resend now"}
+              {secondsLeft > 0 && `0:${String(secondsLeft).padStart(2, "0")}`}
             </p>
           </div>
         </div>

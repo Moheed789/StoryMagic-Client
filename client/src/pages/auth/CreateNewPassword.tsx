@@ -39,9 +39,15 @@ export default function CreateNewPassword() {
       navigate("/signin");
       setStep("forgetsuccess");
     } catch (err: any) {
-      setError(err.message || "Failed to reset password");
-    } finally {
-      setPending(false);
+      if (err.name === "CodeMismatchException") {
+        setError(
+          "Invalid verification code. Please check or request a new one."
+        );
+      } else if (err.name === "ExpiredCodeException") {
+        setError("This code has expired. Please request a new code.");
+      } else {
+        setError(err.message || "Failed to reset password");
+      }
     }
   };
   return (

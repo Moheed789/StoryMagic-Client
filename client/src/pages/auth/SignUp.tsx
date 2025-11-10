@@ -45,17 +45,41 @@ const SignUp: React.FC = () => {
     step,
     setStep,
   } = useAuth();
+
   const [showPass, setShowPass] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
   const RESEND_SECONDS = 60;
   const [secondsLeft, setSecondsLeft] = React.useState(RESEND_SECONDS);
+  const startCountdown = (start = RESEND_SECONDS) => setSecondsLeft(start);
+
+  React.useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const id = setInterval(() => {
+      setSecondsLeft((s) => s - 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [secondsLeft]);
+  const handleManualResend = async () => {
+    if (secondsLeft > 0) return;
+    setServerError(null);
+    try {
+      const email = getValues("email");
+      const password = getValues("password");
+      const fullName = getValues("fullName");
+      await resendSignUpUser(email, password, fullName);
+      startCountdown(RESEND_SECONDS);
+    } catch (err: any) {
+      setServerError(readableAuthError(err));
+    }
+  };
 
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
     getValues,
+    trigger,
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
     mode: "onChange",
@@ -67,7 +91,6 @@ const SignUp: React.FC = () => {
     handleSubmit: handleVerifySubmit,
     formState: { errors: verifyErrors, isValid: verifyValid },
     reset: resetVerify,
-    trigger,
   } = useForm<VerifyForm>({
     resolver: zodResolver(verifySchema),
     mode: "onChange",
@@ -81,6 +104,7 @@ const SignUp: React.FC = () => {
       const res = await signUpUser(data.email, data.password, data.fullName);
       if (res?.nextStep.signUpStep === "CONFIRM_SIGN_UP") {
         setStep("verify");
+        startCountdown(RESEND_SECONDS);
       } else {
         setStep("success");
       }
@@ -91,35 +115,42 @@ const SignUp: React.FC = () => {
     }
   };
 
-  const onSubmitVerify = async ({ code }: VerifyForm) => {
-    setServerError(null);
-    setPending(true);
-    const email = getValues("email");
-    const password = getValues("password");
-    try {
-      await confirmUserSignUp(email, code, password);
-      setStep("success");
-      resetVerify({ code: "" });
-    } catch (err: any) {
+  // const onSubmitVerify = async ({ code }: VerifyForm) => {
+  //   setServerError(null);
+  //   setPending(true);
+  //   const email = getValues("email");
+  //   const password = getValues("password");
+  //   try {
+  //     await confirmUserSignUp(email, code, password);
+  //     setStep("success");
+  //     resetVerify({ code: "" });
+  //   } catch (err: any) {
+  //     setServerError(readableAuthError(err));
+  //   } finally {
+  //     setPending(false);
+  //   }
+  // };
+const onSubmitVerify = async ({ code }: VerifyForm) => {
+  setServerError(null);
+  setPending(true);
+  const email = getValues("email");
+  const password = getValues("password");
+  try {
+    await confirmUserSignUp(email, code, password);
+    setStep("success");
+    resetVerify({ code: "" });
+  } catch (err: any) {
+    if (err.name === "CodeMismatchException") {
+      setServerError("Invalid verification code. Please try again.");
+    } else if (err.name === "ExpiredCodeException") {
+      setServerError("Code expired. Please resend a new one.");
+    } else {
       setServerError(readableAuthError(err));
-    } finally {
-      setPending(false);
     }
-  };
-
-  const resend = async () => {
-    if (secondsLeft > 0) return;
-    setServerError(null);
-    try {
-      const email = getValues("email");
-      const password = getValues("password");
-      const fullName = getValues("fullName");
-      await resendSignUpUser(email, password, fullName);
-      setSecondsLeft(RESEND_SECONDS);
-    } catch (err: any) {
-      setServerError(readableAuthError(err));
-    }
-  };
+  } finally {
+    setPending(false);
+  }
+};
 
   return (
     <div className="min-h-screen w-full bg-[#E7E4EC] flex items-center justify-center p-4">
@@ -245,7 +276,7 @@ const SignUp: React.FC = () => {
             codeError={verifyErrors.code?.message}
             pending={pending || !verifyValid}
             onConfirm={handleVerifySubmit(onSubmitVerify)}
-            onResend={resend}
+            onResend={handleManualResend}
           />
         )}
       </div>

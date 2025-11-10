@@ -26,7 +26,7 @@ const SignIn: React.FC = () => {
 
   const {
     register,
-    handleSubmit,   
+    handleSubmit,
     formState: { errors, isValid },
     getValues,
   } = useForm<SignInForm>({
@@ -97,8 +97,8 @@ const SignIn: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#E7E4EC] flex items-center justify-center p-4">
-      <div className="w-full max-w-[500px] bg-white rounded-[20px] border border-[#CCD8D3] px-[50.5px] pt-[37px] pb-[54px]">
-        <h1 className="text-[36px] text-[#8C5AF2] font-display text-center">
+      <div className="w-full max-w-[500px] bg-white rounded-[20px] border border-[#CCD8D3] px-[28px] sm:px-[50.5px] pt-[37px] pb-[54px]">
+        <h1 className="text-[26px] sm:text-[36px] text-[#8C5AF2] font-display text-center">
           Welcome Back!
         </h1>
 
