@@ -24,6 +24,11 @@ export default function CreateNewPassword() {
     e.preventDefault();
     setError(null);
 
+    if (!code || code.trim().length < 6) {
+      setError("Verification code is required");
+      return;
+    }
+
     if (!password) return setError("Password is required");
     if (password.length < 8)
       return setError("Password must be at least 8 characters");
@@ -35,8 +40,8 @@ export default function CreateNewPassword() {
 
     try {
       setPending(true);
-      await confirmForgotPassword(email, code, password);
-      navigate("/signin");
+      await confirmForgotPassword(email, code.trim(), password);
+      navigate("/signin?passwordReset=true");
       setStep("forgetsuccess");
     } catch (err: any) {
       if (err.name === "CodeMismatchException") {
@@ -48,6 +53,9 @@ export default function CreateNewPassword() {
       } else {
         setError(err.message || "Failed to reset password");
       }
+      setPending(false);
+    } finally {
+      setPending(false);
     }
   };
   return (

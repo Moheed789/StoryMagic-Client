@@ -11,6 +11,7 @@ export interface EmailVerificationCardProps {
   onConfirm: (e: React.FormEvent) => void;
   onResend: () => void;
   pending?: boolean;
+  isSubmitting?: boolean;
 }
 
 export default function EmailVerificationCard({
@@ -21,6 +22,7 @@ export default function EmailVerificationCard({
   onConfirm,
   onResend,
   pending,
+  isSubmitting = false,
 }: EmailVerificationCardProps) {
   return (
     <div className="bg-white w-full max-w-[560px] rounded-[20px] border border-[#CCD8D3] shadow-sm px-[30px] sm:px-[77px] py-[49px]">
@@ -51,7 +53,7 @@ export default function EmailVerificationCard({
               disabled={pending}
               className="mt-2 sm:mt-0 h-[36px] px-5 bg-gradient-to-r from-[#7b45ff] to-[#6b3df0] text-white w-[124px]"
             >
-              {pending ? "Confirming..." : "Confirm"}
+              {isSubmitting ? "Confirming..." : "Confirm"}
             </Button>
           </div>
         </div>

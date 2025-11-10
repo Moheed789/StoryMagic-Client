@@ -30,43 +30,40 @@ export default function VerifyForgotPassword() {
     return () => clearInterval(timer);
   }, [secondsLeft]);
 
-  // const onConfirm = handleSubmit(async ({ code }) => {
-  //   setPending(true);
-  //   setServerError(null);
-  //   try {
-  //     const valid = await verifyForgotCode(email, code);
-  //     if (!valid) {
-  //       setServerError("Invalid or expired verification code.");
-  //       return;
-  //     }
-  //     navigate(
-  //       `/create-new-password?email=${encodeURIComponent(
-  //         email
-  //       )}&code=${encodeURIComponent(code)}`
-  //     );
-  //   } catch (err: any) {
-  //     setServerError(err.message || "Verification failed");
-  //   } finally {
-  //     setPending(false);
-  //   }
-  // });
-
   const onConfirm = handleSubmit(async ({ code }) => {
-  setPending(true);
-  setServerError(null);
-  try {
-    const valid = await verifyForgotCode(email, code);
-    if (!valid) {
-      setServerError("Invalid or expired verification code.");
-      return;
+    setPending(true);
+    setServerError(null);
+    try {
+      if (!code || code.trim().length < 6) {
+        setServerError("Please enter a valid 6-digit code");
+        setPending(false);
+        return;
+      }
+
+      // Verify the code is valid before proceeding
+      // This checks if the code is correct without consuming it
+      // (it uses a dummy password - if code is valid, we get InvalidPasswordException)
+      const isValid = await verifyForgotCode(email, code.trim());
+      
+      if (!isValid) {
+        setServerError("Invalid or expired verification code. Please check or request a new one.");
+        setPending(false);
+        return;
+      }
+
+      // Code is valid, navigate to create new password page
+      navigate(
+        `/create-new-password?email=${encodeURIComponent(
+          email
+        )}&code=${encodeURIComponent(code.trim())}`
+      );
+    } catch (err: any) {
+      setServerError(err.message || "Verification failed");
+      setPending(false);
+    } finally {
+      setPending(false);
     }
-    navigate(`/create-new-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`);
-  } catch (err: any) {
-    setServerError(err.message || "Verification failed. Please try again.");
-  } finally {
-    setPending(false);
-  }
-});
+  });
 
   const onResend = async () => {
     try {

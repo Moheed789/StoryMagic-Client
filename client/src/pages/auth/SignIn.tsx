@@ -19,14 +19,36 @@ type SignInForm = z.infer<typeof signInSchema>;
 
 const SignIn: React.FC = () => {
   const { signInUser } = useAuth();
+  const [location] = useLocation();
   const [, navigate] = useLocation();
   const [showPass, setShowPass] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
+  const [verificationSuccess, setVerificationSuccess] = React.useState(false);
+  const [passwordResetSuccess, setPasswordResetSuccess] = React.useState(false);
+
+  // Check if redirected after successful verification or password reset
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("verified") === "true") {
+      setVerificationSuccess(true);
+      // Clear the query param from URL
+      window.history.replaceState({}, "", "/signin");
+      // Clear message after 5 seconds
+      setTimeout(() => setVerificationSuccess(false), 5000);
+    }
+    if (urlParams.get("passwordReset") === "true") {
+      setPasswordResetSuccess(true);
+      // Clear the query param from URL
+      window.history.replaceState({}, "", "/signin");
+      // Clear message after 5 seconds
+      setTimeout(() => setPasswordResetSuccess(false), 5000);
+    }
+  }, [location]);
 
   const {
     register,
-    handleSubmit,
+    handleSubmit,   
     formState: { errors, isValid },
     getValues,
   } = useForm<SignInForm>({
@@ -41,13 +63,14 @@ const SignIn: React.FC = () => {
     try {
       const res = await signInUser(data.email, data.password);
       const step = res?.nextStep?.signInStep;
+      const challengeName = (res?.nextStep as any)?.challengeName;
 
       if (!step || step === "DONE") {
         navigate("/");
         return;
       }
 
-      if (step === "CONFIRM_SIGN_UP") {
+      if (step === "CONFIRM_SIGN_UP" || challengeName === "CONFIRM_SIGN_UP") {
         navigate(
           `/SignUp?step=verify&email=${encodeURIComponent(getValues("email"))}`
         );
@@ -69,8 +92,7 @@ const SignIn: React.FC = () => {
       }
 
       if (
-        step === "RESET_PASSWORD" ||
-        step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD"
+        step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED"
       ) {
         navigate(
           `/forgot-password?email=${encodeURIComponent(getValues("email"))}`
@@ -97,8 +119,8 @@ const SignIn: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#E7E4EC] flex items-center justify-center p-4">
-      <div className="w-full max-w-[500px] bg-white rounded-[20px] border border-[#CCD8D3] px-[28px] sm:px-[50.5px] pt-[37px] pb-[54px]">
-        <h1 className="text-[26px] sm:text-[36px] text-[#8C5AF2] font-display text-center">
+      <div className="w-full max-w-[500px] bg-white rounded-[20px] border border-[#CCD8D3] px-[50.5px] pt-[37px] pb-[54px]">
+        <h1 className="text-[36px] text-[#8C5AF2] font-display text-center">
           Welcome Back!
         </h1>
 
@@ -175,6 +197,16 @@ const SignIn: React.FC = () => {
             </Link>
           </div>
 
+          {verificationSuccess && (
+            <p className="text-sm text-green-600 mt-2 bg-green-50 p-2 rounded">
+              Email verified successfully! Please sign in to continue.
+            </p>
+          )}
+          {passwordResetSuccess && (
+            <p className="text-sm text-green-600 mt-2 bg-green-50 p-2 rounded">
+              Password reset successfully! Please sign in with your new password.
+            </p>
+          )}
           {serverError && (
             <p className="text-sm text-red-500 mt-2">{serverError}</p>
           )}

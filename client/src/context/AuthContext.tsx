@@ -51,6 +51,7 @@ interface AuthContextType {
     code: string,
     password: string
   ) => Promise<void>;
+  confirmSignUpOnly: (email: string, code: string) => Promise<void>;
   resendSignUpUser: (email: string) => Promise<void>;
   signInUser: (email: string, password: string) => Promise<SignInOutput | void>;
   signOutUser: () => Promise<void>;
@@ -112,6 +113,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const isAuthenticated = !!user;
 
+  // ============================
+  // Fetch helper for private APIs
+  // ============================
   const fetchWithAuth = async (endpoint: string) => {
     try {
       const session: any = await (
@@ -134,6 +138,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // ============================
+  // Initialization
+  // ============================
   useEffect(() => {
     let mounted = true;
 
@@ -156,6 +163,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
+  // ============================
+  // Auth functions
+  // ============================
   const signUpUser = async (
     email: string,
     password: string,
@@ -181,12 +191,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     await signInUser(email, password);
   };
 
+  const confirmSignUpOnly = async (email: string, code: string) => {
+    await confirmSignUp({ username: email, confirmationCode: code });
+  };
+
   const signInUser = async (email: string, password: string) => {
     const res = await signIn({ username: email, password });
-    const currentUser = await getCurrentUser();
-    const attributes = await fetchUserAttributes();
-    const apiProfile = await fetchWithAuth("/user");
-    setUser({ ...currentUser, attributes, apiProfile });
+    
+    // Check if there's a challenge that needs to be handled
+    const challengeName = res?.nextStep?.challengeName;
+    const signInStep = res?.nextStep?.signInStep;
+    
+    // Only set user if authentication is complete (no challenge)
+    // Handle PASSWORD_VERIFIER and CONFIRM_SIGN_UP challenges
+    if (
+      challengeName === "PASSWORD_VERIFIER" ||
+      challengeName === "CONFIRM_SIGN_UP" ||
+      signInStep === "PASSWORD_VERIFIER" ||
+      signInStep === "CONFIRM_SIGN_UP"
+    ) {
+      // Don't set user yet, return the response so the caller can handle the challenge
+      return res;
+    }
+    
+    // Authentication is complete, set the user
+    try {
+      const currentUser = await getCurrentUser();
+      const attributes = await fetchUserAttributes();
+      const apiProfile = await fetchWithAuth("/user");
+      setUser({ ...currentUser, attributes, apiProfile });
+    } catch (err) {
+      // If getCurrentUser fails, user might still be in a challenge state
+      // Return the response anyway so caller can handle it
+      console.error("Error getting current user:", err);
+    }
+    
     return res;
   };
 
@@ -204,78 +243,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     return apiProfile;
   };
+
+  // ============================
+  // Forgot Password Flow
+  // ============================
   const forgotPassword = async (email: string) => {
     await resetPassword({ username: email });
   };
 
-  const confirmForgotPassword = async (
-    email: string,
-    code: string,
-    newPassword: string
-  ) => {
-    try {
-      await confirmResetPassword({
-        username: email,
-        confirmationCode: code,
-        newPassword,
-      });
-    } catch (err: any) {
-      console.error("Error confirming password:", err);
-      throw err;
-    }
-  };
-
-  // const verifyForgotCode = async (email: string, code: string) => {
-  //   try {
-  //     await confirmResetPassword({
-  //       username: email,
-  //       confirmationCode: code,
-  //       newPassword: "TempPass123!",
-  //     });
-  //     return true;
-  //   } catch (err: any) {
-  //     if (
-  //       err.name === "InvalidPasswordException" ||
-  //       err.message?.includes("Password did not conform")
-  //     ) {
-  //       return true;
-  //     } else if (
-  //       err.name === "CodeMismatchException" ||
-  //       err.name === "ExpiredCodeException"
-  //     ) {
-  //       return false;
-  //     } else {
-  //       console.error("verifyForgotCode unknown error:", err);
-  //       return false;
-  //     }
-  //   }
-  // };
-  const verifyForgotCode = async (email: string, code: string) => {
+const confirmForgotPassword = async (
+  email: string,
+  code: string,
+  newPassword: string
+) => {
   try {
-    // Try validating code without resetting password
     await confirmResetPassword({
       username: email,
       confirmationCode: code,
-      newPassword: "InvalidTemp1!",
+      newPassword, // <-- yahan user ka actual password jaayega
     });
-    return true;
   } catch (err: any) {
-    if (
-      err.name === "InvalidPasswordException" ||
-      err.message?.includes("Password did not conform")
-    ) {
-      return true; // means code is valid
-    } else if (
-      err.name === "CodeMismatchException" ||
-      err.name === "ExpiredCodeException"
-    ) {
-      return false; // invalid or expired
-    } else {
-      console.error("verifyForgotCode unknown error:", err);
-      return false;
-    }
+    console.error("Error confirming password:", err);
+    throw err;
   }
 };
+
+  const verifyForgotCode = async (email: string, code: string) => {
+    try {
+      // Try confirming the code with a deliberately invalid password
+      // This will fail with InvalidPasswordException if code is valid
+      // This prevents accidentally resetting the password
+      await confirmResetPassword({
+        username: email,
+        confirmationCode: code,
+        newPassword: "x", // Deliberately invalid password (too short, no uppercase, no special char)
+      });
+      // If we reach here, something unexpected happened
+      // Don't return true as the password might have been reset
+      console.warn("verifyForgotCode: Unexpected success with invalid password");
+      return false;
+    } catch (err: any) {
+      if (
+        err.name === "InvalidPasswordException" ||
+        err.message?.includes("Password did not conform") ||
+        err.message?.includes("password")
+      ) {
+        // Code is correct, only password invalid - code is still valid
+        return true;
+      } else if (
+        err.name === "CodeMismatchException" ||
+        err.name === "ExpiredCodeException"
+      ) {
+        // Code is invalid or expired
+        return false;
+      } else {
+        console.error("verifyForgotCode unknown error:", err);
+        return false;
+      }
+    }
+  };
+
+  // ============================
 
   return (
     <AuthContext.Provider
@@ -285,6 +313,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isAuthenticated,
         signUpUser,
         confirmUserSignUp,
+        confirmSignUpOnly,
         resendSignUpUser,
         signInUser,
         signOutUser,
