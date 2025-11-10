@@ -130,7 +130,6 @@ export default function HeroSection() {
           ))}
         </div>
 
-        {/* Process Visual */}
         <div className="mt-12 text-center">
           <img
             src={processIcons}
