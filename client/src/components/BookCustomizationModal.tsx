@@ -34,14 +34,14 @@ const SHIPPING_PRICES: Record<
   { price: number; label: string; eta: string }
 > = {
   standard: {
-    price: 5.99,
+    price: 6.69,
     label: "Standard Shipping",
-    eta: "3–5 business days",
+    eta: "11-13 business days",
   },
   express: {
-    price: 9.99,
+    price: 21.74,
     label: "Express Shipping",
-    eta: "1–2 business days",
+    eta: "6-8 business days",
   },
 };
 // ✅ FIX END
