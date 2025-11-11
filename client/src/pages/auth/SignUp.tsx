@@ -236,7 +236,7 @@ const SignUp: React.FC = () => {
                   {...register("email")}
                 />
                 {errors.email && (
-                  <p className="text-[12px] text-[#BAA2E5]">
+                  <p className="text-[12px] text-red-500">
                     {errors.email.message}
                   </p>
                 )}
@@ -263,7 +263,7 @@ const SignUp: React.FC = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-[12px] text-[#BAA2E5] mt-1">
+                  <p className="text-[12px] text-red-500 mt-1">
                     {errors.password.message}
                   </p>
                 )}
