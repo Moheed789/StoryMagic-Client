@@ -18,7 +18,7 @@ export default function ForgotPassword() {
     setPending(true);
     try {
       await forgotPassword(email);
-      navigate(`/verify-forgot-password?email=${encodeURIComponent(email)}`);
+      navigate(`/create-new-password?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setError(err.message || "Failed to send verification code");
     } finally {
