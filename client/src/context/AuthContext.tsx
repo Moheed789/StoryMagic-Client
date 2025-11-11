@@ -274,30 +274,26 @@ const confirmForgotPassword = async (
       // This will fail with InvalidPasswordException if code is valid
       // This prevents accidentally resetting the password
       await confirmResetPassword({
-        username: email,
-        confirmationCode: code,
-        newPassword: "x", // Deliberately invalid password (too short, no uppercase, no special char)
+        username: (email || "").trim(),
+        confirmationCode: (code || "").trim(),
+        newPassword: "x", // deliberately invalid
       });
       // If we reach here, something unexpected happened
       // Don't return true as the password might have been reset
-      console.warn("verifyForgotCode: Unexpected success with invalid password");
       return false;
     } catch (err: any) {
-      if (
-        err.name === "InvalidPasswordException" ||
-        err.message?.includes("Password did not conform") ||
-        err.message?.includes("password")
-      ) {
+      const name = err?.name;
+      const message: string = err?.message || "";
+
+      // Treat password policy failures as "code is valid"
+      if (name === "InvalidPasswordException" || message.includes("Password did not conform")) {
         // Code is correct, only password invalid - code is still valid
         return true;
-      } else if (
-        err.name === "CodeMismatchException" ||
-        err.name === "ExpiredCodeException"
-      ) {
+      } else if (name === "CodeMismatchException" || name === "ExpiredCodeException") {
         // Code is invalid or expired
         return false;
       } else {
-        console.error("verifyForgotCode unknown error:", err);
+        // Unknown error → consider invalid to be safe
         return false;
       }
     }

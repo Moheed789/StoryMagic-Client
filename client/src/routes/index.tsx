@@ -46,12 +46,6 @@ export const routes: RouteConfig[] = [
     isPublicOnly: true,
   },
   {
-    path: "/verify-forgot-password",
-    component: <VerifyForgotPassword />,
-    isProtected: false,
-    isPublicOnly: true,
-  },
-  {
     path: "/create-new-password",
     component: <CreateNewPassword />,
     isProtected: false,
