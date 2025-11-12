@@ -46,81 +46,13 @@ const SHIPPING_PRICES: Record<
 };
 // ✅ FIX END
 
-const ZIP_RANGES: Record<string, Array<{ start: number; end: number }>> = {
-  AL: [{ start: 35000, end: 36999 }],
-  AK: [{ start: 99500, end: 99999 }],
-  AZ: [{ start: 85000, end: 86999 }],
-  AR: [
-    { start: 71600, end: 72999 },
-    { start: 75502, end: 75502 },
-  ],
-  CA: [{ start: 90000, end: 96199 }],
-  CO: [{ start: 80000, end: 81699 }],
-  CT: [{ start: 6000, end: 6999 }],
-  DC: [{ start: 20000, end: 20599 }],
-  DE: [{ start: 19700, end: 19999 }],
-  FL: [{ start: 32000, end: 34999 }],
-  GA: [
-    { start: 30000, end: 31999 },
-    { start: 39800, end: 39999 },
-  ],
-  HI: [{ start: 96700, end: 96899 }],
-  ID: [{ start: 83200, end: 83899 }],
-  IL: [{ start: 60000, end: 62999 }],
-  IN: [{ start: 46000, end: 47999 }],
-  IA: [{ start: 50000, end: 52899 }],
-  KS: [{ start: 66000, end: 67999 }],
-  KY: [{ start: 40000, end: 42799 }],
-  LA: [{ start: 70000, end: 71499 }],
-  ME: [{ start: 3900, end: 4999 }],
-  MD: [{ start: 20600, end: 21999 }],
-  MA: [
-    { start: 1000, end: 2799 },
-    { start: 5500, end: 5599 },
-  ],
-  MI: [{ start: 48000, end: 49999 }],
-  MN: [{ start: 55000, end: 56799 }],
-  MS: [{ start: 38600, end: 39799 }],
-  MO: [{ start: 63000, end: 65899 }],
-  MT: [{ start: 59000, end: 59999 }],
-  NE: [{ start: 68000, end: 69399 }],
-  NV: [{ start: 88900, end: 89899 }],
-  NH: [{ start: 3000, end: 3899 }],
-  NJ: [{ start: 7000, end: 8999 }],
-  NM: [{ start: 87000, end: 88499 }],
-  NY: [{ start: 10000, end: 14999 }],
-  NC: [{ start: 27000, end: 28999 }],
-  ND: [{ start: 58000, end: 58899 }],
-  OH: [{ start: 43000, end: 45999 }],
-  OK: [{ start: 73000, end: 74999 }],
-  OR: [{ start: 97000, end: 97999 }],
-  PA: [{ start: 15000, end: 19699 }],
-  RI: [{ start: 2800, end: 2999 }],
-  SC: [{ start: 29000, end: 29999 }],
-  SD: [{ start: 57000, end: 57799 }],
-  TN: [{ start: 37000, end: 38599 }],
-  TX: [
-    { start: 75000, end: 79999 },
-    { start: 88500, end: 88599 },
-  ],
-  UT: [{ start: 84000, end: 84799 }],
-  VT: [{ start: 5000, end: 5999 }],
-  VA: [
-    { start: 20100, end: 20199 },
-    { start: 22000, end: 24699 },
-  ],
-  WA: [{ start: 98000, end: 99499 }],
-  WV: [{ start: 24700, end: 26899 }],
-  WI: [{ start: 53000, end: 54999 }],
-  WY: [{ start: 82000, end: 83199 }],
-};
 
-function zipMatchesState(zip5: string, stateCode: string): boolean {
-  const code = (stateCode || "").toUpperCase();
-  if (!/^\d{5}$/.test(zip5) || !ZIP_RANGES[code]) return false;
-  const n = parseInt(zip5, 10);
-  return ZIP_RANGES[code].some(({ start, end }) => n >= start && n <= end);
-}
+// function zipMatchesState(zip5: string, stateCode: string): boolean {
+//   const code = (stateCode || "").toUpperCase();
+//   if (!/^\d{5}$/.test(zip5) || !ZIP_RANGES[code]) return false;
+//   const n = parseInt(zip5, 10);
+//   return ZIP_RANGES[code].some(({ start, end }) => n >= start && n <= end);
+// }
 
 const CITY_TO_STATE: Record<string, string> = {
   "New York": "NY",
@@ -266,14 +198,14 @@ const BookCustomizationModal: React.FC<Props> = ({
       });
       return false;
     }
-    if (st && !zipMatchesState(zip, st)) {
-      toast({
-        title: "ZIP doesn’t match state",
-        description: `ZIP ${zip} does not belong to ${st}. Please correct it.`,
-        variant: "destructive",
-      });
-      return false;
-    }
+    // if (st && !zipMatchesState(zip, st)) {
+    //   toast({
+    //     title: "ZIP doesn’t match state",
+    //     description: `ZIP ${zip} does not belong to ${st}. Please correct it.`,
+    //     variant: "destructive",
+    //   });
+    //   return false;
+    // }
     return true;
   };
 
@@ -294,7 +226,6 @@ const BookCustomizationModal: React.FC<Props> = ({
       });
       return;
     }
-    if (!validateZip()) return;
 
     setLoading(true);
     try {
@@ -302,16 +233,26 @@ const BookCustomizationModal: React.FC<Props> = ({
       const token = session?.tokens?.idToken?.toString();
 
       const verifyPayload = {
-        line1: bookForm.shipping_address.street1,
-        line2: bookForm.shipping_address.street2,
-        city: bookForm.shipping_address.city,
-        state_code: bookForm.shipping_address.state_code,
-        postcode: bookForm.shipping_address.postcode,
-        country_code: bookForm.shipping_address.country_code,
+        line_items: [
+          {
+            page_count: Number(bookForm.pageOption),
+            pod_package_id: "0850X1100FCPRESS080CW444GXX",
+            quantity: 1,
+          },
+        ],
+        shipping_address: {
+          city: bookForm.shipping_address.city,
+          country_code: bookForm.shipping_address.country_code,
+          postcode: bookForm.shipping_address.postcode,
+          state_code: bookForm.shipping_address.state_code || null,
+          street1: bookForm.shipping_address.street1,
+          phone_number: bookForm.shipping_address.phone_number,
+        },
+        shipping_option: bookForm.shipping === "standard" ? "MAIL" : "EXPRESS",
       };
 
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/address-verify`,
+        `${import.meta.env.VITE_BASE_URL}/lulu/address-validate`,
         {
           method: "POST",
           headers: {
@@ -325,11 +266,11 @@ const BookCustomizationModal: React.FC<Props> = ({
 
       const data = await response.json();
 
-      if (!data?.valid) {
+      if (!data?.success) {
         toast({
           title: "Address Verification Failed",
           description:
-            data?.feedback || "Invalid address. Please review your entry.",
+            data?.message || "Invalid address. Please review your entry.",
           variant: "destructive",
         });
         setLoading(false);
@@ -649,7 +590,6 @@ const BookCustomizationModal: React.FC<Props> = ({
                         : p
                     )
                   }
-                  onBlur={validateZip}
                   inputMode="numeric"
                   pattern="\d{5}"
                   className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40 ${
