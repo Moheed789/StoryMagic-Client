@@ -545,7 +545,6 @@ const BookCustomizationModal: React.FC<Props> = ({
                                     shipping_address: {
                                       ...p.shipping_address,
                                       state_code: s.code,
-                                      city: "",
                                     },
                                   }
                                 : p
@@ -620,39 +619,9 @@ const BookCustomizationModal: React.FC<Props> = ({
                       setStateText(stateNameFromCode(code));
                     }
                   }}
-                  placeholder="Start typing your city"
+                  placeholder="Type your city"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C5AF2]/40"
                 />
-                {cityOpen && citySuggestions.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                    {citySuggestions.map((city: string) => (
-                      <div
-                        key={city}
-                        onMouseDown={() => {
-                          const code = lookupStateByCity(city);
-                          setBookForm((p) =>
-                            p
-                              ? {
-                                  ...p,
-                                  shipping_address: {
-                                    ...p.shipping_address,
-                                    city,
-                                    state_code:
-                                      code || p.shipping_address.state_code,
-                                  },
-                                }
-                              : p
-                          );
-                          if (code) setStateText(stateNameFromCode(code));
-                          setCityOpen(false);
-                        }}
-                        className="px-3 py-2 text-sm text-slate-700 hover:bg-[#F8F6FF] cursor-pointer"
-                      >
-                        {city}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div>

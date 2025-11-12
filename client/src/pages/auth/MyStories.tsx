@@ -16,6 +16,7 @@ type Story = {
   status?: string;
   totalPages?: number;
   coverImageUrl?: string | null;
+  previewCount?: number;
   downloadHistory?: Array<{
     downloadOption: string;
     status: string;
@@ -85,13 +86,9 @@ const SHIPPING_PRICES: Record<
   express: { price: 21.74, label: "Express", eta: "6–8 days" },
 };
 
-const FREE_PREVIEW_LIMIT = 2;
-
 const MyStories: React.FC = () => {
   const { toast } = useToast();
   const [stories, setStories] = useState<Story[]>([]);
-  console.log("Stories state:", [...Array(stories?.length)]);
-  console.log("Stories 1:", stories?.length);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -112,16 +109,47 @@ const MyStories: React.FC = () => {
   const [selectedDownloadOption, setSelectedDownloadOption] = useState<{
     [storyId: string]: "pdf_only" | "pdf_and_book";
   }>({});
-  const [showBookFormFor, setShowBookForm] = useState<string | null>(null);
-  const [bookForm, setBookForm] = useState<BookPurchaseForm | null>(null);
+  
   const [storyPreviewCounts, setStoryPreviewCounts] = useState<{
     [storyId: string]: number;
   }>({});
+  
   const [previewsPurchased, setPreviewsPurchased] = useState<{
     [storyId: string]: boolean;
   }>({});
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
   const [unlockModalStoryId, setUnlockModalStoryId] = useState<string>("");
+  
+  const [showBookFormFor, setShowBookForm] = useState<string | null>(null);
+  const [bookForm, setBookForm] = useState<BookPurchaseForm | null>(null);
+
+  const updatePreviewCount = async (storyId: string, userId: string) => {
+    try {
+      const session: any = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+
+      const res = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/preview-count?userId=${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        return data.previewCount || 0;
+      }
+      return null;
+    } catch (err) {
+      console.error("Failed to update preview count", err);
+      return null;
+    }
+  };
+
   const markPreviewPurchased = (storyId: string) => {
     const updatedPurchases = { ...previewsPurchased, [storyId]: true };
     setPreviewsPurchased(updatedPurchases);
@@ -130,7 +158,6 @@ const MyStories: React.FC = () => {
     const updatedCounts = { ...storyPreviewCounts };
     delete updatedCounts[storyId];
     setStoryPreviewCounts(updatedCounts);
-    localStorage.setItem("storyPreviewCounts", JSON.stringify(updatedCounts));
   };
 
   const refetchStories = async () => {
@@ -163,6 +190,7 @@ const MyStories: React.FC = () => {
       try {
         const session: any = await fetchAuthSession();
         const token = session?.tokens?.idToken?.toString();
+        const userId = session?.tokens?.idToken?.payload?.sub;
 
         const res = await fetch(`${import.meta.env.VITE_BASE_URL}/stories`, {
           headers: {
@@ -176,14 +204,22 @@ const MyStories: React.FC = () => {
 
         if (data?.stories && Array.isArray(data.stories)) {
           setStories(data.stories);
+          
+          const counts: { [key: string]: number } = {};
+          for (const story of data.stories) {
+            counts[story.storyId] = story.previewCount ?? 3;
+          }
+          setStoryPreviewCounts(counts);
         } else if (Array.isArray(data)) {
           setStories(data);
+          const counts: { [key: string]: number } = {};
+          for (const story of data) {
+            counts[story.storyId] = story.previewCount ?? 3;
+          }
+          setStoryPreviewCounts(counts);
         } else {
           setStories([]);
         }
-
-        const savedCounts = localStorage.getItem("storyPreviewCounts");
-        if (savedCounts) setStoryPreviewCounts(JSON.parse(savedCounts));
 
         const savedPurchased = localStorage.getItem("previewsPurchased");
         if (savedPurchased) {
@@ -718,7 +754,7 @@ const MyStories: React.FC = () => {
     const purchased = hasUnlimitedPreviews(storyId);
     const count = storyPreviewCounts[storyId] || 0;
 
-    if (!purchased && count >= FREE_PREVIEW_LIMIT) {
+    if (!purchased && count <= 0) {
       setUnlockModalStoryId(storyId);
       setShowUnlockModal(true);
       return;
@@ -731,6 +767,7 @@ const MyStories: React.FC = () => {
     try {
       const session: any = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
+      const userId = session?.tokens?.idToken?.payload?.sub;
 
       const res = await fetch(
         `${import.meta.env.VITE_BASE_URL}/stories/${storyId}`,
@@ -746,10 +783,14 @@ const MyStories: React.FC = () => {
       const data = await res.json();
       setModalStory(data);
 
-      if (!purchased) {
-        const nextCounts = { ...storyPreviewCounts, [storyId]: count + 1 };
-        setStoryPreviewCounts(nextCounts);
-        localStorage.setItem("storyPreviewCounts", JSON.stringify(nextCounts));
+      if (!purchased && userId) {
+        const newCount = await updatePreviewCount(storyId, userId);
+        if (newCount !== null) {
+          setStoryPreviewCounts(prev => ({
+            ...prev,
+            [storyId]: newCount
+          }));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -767,7 +808,7 @@ const MyStories: React.FC = () => {
     const purchased = hasUnlimitedPreviews(storyId);
     const count = storyPreviewCounts[storyId] || 0;
 
-    if (purchased || count < FREE_PREVIEW_LIMIT) {
+    if (purchased || count > 0) {
       return {
         text: "Preview",
         disabled: false,
@@ -787,7 +828,6 @@ const MyStories: React.FC = () => {
   const getPreviewStatusText = (storyId: string) => {
     const purchased = hasUnlimitedPreviews(storyId);
     const count = storyPreviewCounts[storyId] || 0;
-    const previewsLeft = Math.max(0, FREE_PREVIEW_LIMIT - count);
 
     if (purchased) {
       return (
@@ -799,13 +839,13 @@ const MyStories: React.FC = () => {
       );
     }
 
-    if (previewsLeft > 0) {
+    if (count > 0) {
       return (
         <div>
           <p className="text-[14px] text-[#6F677E] flex items-center gap-2 justify-end">
             Free Previews:
             <span className="text-[#34C759] font-medium">
-              {previewsLeft} Left
+              {count} Left
             </span>
           </p>
         </div>
@@ -832,7 +872,6 @@ const MyStories: React.FC = () => {
     );
   };
 
-  const openModal = () => setIsModalOpen(true);
 
   const closeModal = () => {
     setIsModalOpen(false);
