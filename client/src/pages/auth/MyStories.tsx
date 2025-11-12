@@ -929,7 +929,7 @@ const MyStories: React.FC = () => {
 
   const heading = useMemo(
     () => (
-      <div className="text-center mb-8 md:mb-10 mt-[55px] md:mt-[105px]">
+      <div className="text-center mb-8 md:mb-10 mt-[15px]">
         <h1 className="items-baseline text-[#24212C] font-display text-[34px] font-normal gap-2 md:text-[64px] tracking-tight">
           Your Magical&nbsp;<span className="text-[#8C5AF2]">Stories</span>
         </h1>
@@ -990,15 +990,24 @@ const MyStories: React.FC = () => {
             return (
               <div
                 key={story.storyId}
-                className="rounded-[20px] border border-[#CCD8D3]  w-[497px] shadow-sm overflow-hidden relative"
+                className="rounded-[20px] border border-[#CCD8D3] w-[497px] shadow-sm overflow-hidden relative bg-white"
               >
-                <div className="relative w-full overflow-hidden rounded-2xl">
-                  <div className="relative h-[340px] w-full">
+                <div className="relative w-full">
+                  <div className="relative h-[340px] w-full rounded-[16px] overflow-hidden ">
+                    <div
+                      className="absolute inset-0 bg-cover bg-center blur-2xl "
+                      style={{
+                        backgroundImage: `url(${story.coverImageUrl || "/placeholder-cover.jpg"})`,
+                        backgroundColor: '#00000047',
+                      }}
+                    />
+                    
                     <img
                       src={story.coverImageUrl || "/placeholder-cover.jpg"}
                       alt={story.title}
-                      className="absolute inset-0 w-full h-full object-top"
+                      className="relative w-full h-full object-contain z-10"
                     />
+                    
                     <button
                       onClick={() =>
                         openDeleteModal(
@@ -1006,10 +1015,10 @@ const MyStories: React.FC = () => {
                           story.title || "Untitled Story"
                         )
                       }
-                      className="absolute bottom-3 right-3 w-6 h-6 bg-white text-[#FF383C] rounded-[6px] flex items-center justify-center text-sm font-bold z-10"
+                      className="absolute bottom-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm text-[#FF383C] rounded-[8px] flex items-center justify-center shadow-md hover:bg-white transition-all z-20"
                       title="Delete Story"
                     >
-                      <Trash size={16} />
+                      <Trash size={18} />
                     </button>
                   </div>
                 </div>
