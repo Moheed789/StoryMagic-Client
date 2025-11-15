@@ -163,9 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
-  // ============================
-  // Auth functions
-  // ============================
+
   const signUpUser = async (
     email: string,
     password: string,
@@ -198,31 +196,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signInUser = async (email: string, password: string) => {
     const res = await signIn({ username: email, password });
     
-    // Check if there's a challenge that needs to be handled
     const challengeName = res?.nextStep?.challengeName;
     const signInStep = res?.nextStep?.signInStep;
     
-    // Only set user if authentication is complete (no challenge)
-    // Handle PASSWORD_VERIFIER and CONFIRM_SIGN_UP challenges
     if (
       challengeName === "PASSWORD_VERIFIER" ||
       challengeName === "CONFIRM_SIGN_UP" ||
       signInStep === "PASSWORD_VERIFIER" ||
       signInStep === "CONFIRM_SIGN_UP"
     ) {
-      // Don't set user yet, return the response so the caller can handle the challenge
       return res;
     }
     
-    // Authentication is complete, set the user
     try {
       const currentUser = await getCurrentUser();
       const attributes = await fetchUserAttributes();
       const apiProfile = await fetchWithAuth("/user");
       setUser({ ...currentUser, attributes, apiProfile });
     } catch (err) {
-      // If getCurrentUser fails, user might still be in a challenge state
-      // Return the response anyway so caller can handle it
       console.error("Error getting current user:", err);
     }
     
@@ -244,9 +235,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return apiProfile;
   };
 
-  // ============================
-  // Forgot Password Flow
-  // ============================
   const forgotPassword = async (email: string) => {
     await resetPassword({ username: email });
   };
@@ -260,7 +248,7 @@ const confirmForgotPassword = async (
     await confirmResetPassword({
       username: email,
       confirmationCode: code,
-      newPassword, // <-- yahan user ka actual password jaayega
+      newPassword, 
     });
   } catch (err: any) {
     console.error("Error confirming password:", err);
@@ -270,36 +258,26 @@ const confirmForgotPassword = async (
 
   const verifyForgotCode = async (email: string, code: string) => {
     try {
-      // Try confirming the code with a deliberately invalid password
-      // This will fail with InvalidPasswordException if code is valid
-      // This prevents accidentally resetting the password
       await confirmResetPassword({
         username: (email || "").trim(),
         confirmationCode: (code || "").trim(),
-        newPassword: "x", // deliberately invalid
+        newPassword: "x", 
       });
-      // If we reach here, something unexpected happened
-      // Don't return true as the password might have been reset
       return false;
     } catch (err: any) {
       const name = err?.name;
       const message: string = err?.message || "";
 
-      // Treat password policy failures as "code is valid"
       if (name === "InvalidPasswordException" || message.includes("Password did not conform")) {
-        // Code is correct, only password invalid - code is still valid
         return true;
       } else if (name === "CodeMismatchException" || name === "ExpiredCodeException") {
-        // Code is invalid or expired
         return false;
       } else {
-        // Unknown error → consider invalid to be safe
         return false;
       }
     }
   };
 
-  // ============================
 
   return (
     <AuthContext.Provider

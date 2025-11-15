@@ -55,7 +55,6 @@ const SignUp: React.FC = () => {
   const [secondsLeft, setSecondsLeft] = React.useState(RESEND_SECONDS);
   const startCountdown = (start = RESEND_SECONDS) => setSecondsLeft(start);
 
-  // Read step from URL query params on mount and when location changes
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const stepParam = urlParams.get("step");
@@ -63,25 +62,20 @@ const SignUp: React.FC = () => {
       setStep("verify");
       startCountdown(RESEND_SECONDS);
       
-      // Auto-resend code when coming from sign-in flow (no form data)
       const email = urlParams.get("email");
       if (email) {
-        // Check if we have form data - if not, we're coming from sign-in
         const formEmail = getValues("email");
         if (!formEmail) {
-          // Coming from sign-in, auto-resend code
           resendSignUpUser(email).catch((err: any) => {
             console.error("Auto-resend failed:", err);
           });
         }
       }
     } else {
-      // Reset to form if no verify step in URL
       setStep("form");
       setPending(false);
       setServerError(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, setStep]);
 
   React.useEffect(() => {
@@ -95,7 +89,6 @@ const SignUp: React.FC = () => {
     if (secondsLeft > 0) return;
     setServerError(null);
     try {
-      // Get email from form or URL params
       const formEmail = getValues("email");
       const urlParams = new URLSearchParams(window.location.search);
       const urlEmail = urlParams.get("email");
@@ -157,7 +150,6 @@ const SignUp: React.FC = () => {
   const onSubmitVerify = async ({ code }: VerifyForm) => {
     setServerError(null);
     setPending(true);
-    // Get email from form or URL params
     const formEmail = getValues("email");
     const urlParams = new URLSearchParams(window.location.search);
     const urlEmail = urlParams.get("email");
@@ -177,13 +169,10 @@ const SignUp: React.FC = () => {
     }
     
     try {
-      // If password is available (from sign-up flow), confirm and sign in
-      // If password is not available (from sign-in flow), just confirm and redirect to sign-in
       if (password) {
         await confirmUserSignUp(email, code, password);
         setStep("success");
       } else {
-        // Just confirm signup without signing in, then redirect to sign-in
         await confirmSignUpOnly(email, code);
         navigate(`/signin?verified=true&email=${encodeURIComponent(email)}`);
         return;

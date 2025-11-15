@@ -28,7 +28,6 @@ const PAGE_PRICES: Record<"10" | "15" | "20", number> = {
   "20": 20.99,
 };
 
-// ✅ FIX ADDED BELOW
 const SHIPPING_PRICES: Record<
   "standard" | "express",
   { price: number; label: string; eta: string }
@@ -44,15 +43,7 @@ const SHIPPING_PRICES: Record<
     eta: "6-8 business days",
   },
 };
-// ✅ FIX END
 
-
-// function zipMatchesState(zip5: string, stateCode: string): boolean {
-//   const code = (stateCode || "").toUpperCase();
-//   if (!/^\d{5}$/.test(zip5) || !ZIP_RANGES[code]) return false;
-//   const n = parseInt(zip5, 10);
-//   return ZIP_RANGES[code].some(({ start, end }) => n >= start && n <= end);
-// }
 
 const CITY_TO_STATE: Record<string, string> = {
   "New York": "NY",
@@ -140,7 +131,6 @@ const formatUSPhone = (digits: string) => {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 };
 
-// ✅ Rest of your original file remains same below
 
 interface Props {
   isOpen: boolean;
@@ -198,14 +188,7 @@ const BookCustomizationModal: React.FC<Props> = ({
       });
       return false;
     }
-    // if (st && !zipMatchesState(zip, st)) {
-    //   toast({
-    //     title: "ZIP doesn’t match state",
-    //     description: `ZIP ${zip} does not belong to ${st}. Please correct it.`,
-    //     variant: "destructive",
-    //   });
-    //   return false;
-    // }
+    
     return true;
   };
 
