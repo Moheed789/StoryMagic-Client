@@ -20,8 +20,6 @@ export default function CreateNewPassword() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-
-  // resend cooldown + small success message
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
 
@@ -104,7 +102,6 @@ export default function CreateNewPassword() {
             Enter the verification code and your new password
           </p>
 
-          {/* Verification Code */}
           <div className="mt-[25px]">
             <label className="text-[16px] text-[#999999] font-story">Verification Code</label>
             <Input
@@ -129,7 +126,6 @@ export default function CreateNewPassword() {
             </div>
           </div>
 
-          {/* New Password */}
           <div className="mt-[20px]">
             <label className="text-[16px] text-[#999999] font-story">New Password</label>
             <div className="relative mt-1">
@@ -156,7 +152,6 @@ export default function CreateNewPassword() {
             </p>
           </div>
 
-          {/* Confirm Password */}
           <div className="mt-[24px]">
             <label className="text-[16px] text-[#999999] font-story">Confirm Password</label>
             <div className="relative mt-1">
@@ -180,7 +175,6 @@ export default function CreateNewPassword() {
             </div>
           </div>
 
-          {/* Messages */}
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           {infoMsg && <p className="text-green-600 text-sm mt-2">{infoMsg}</p>}
 

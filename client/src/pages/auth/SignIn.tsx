@@ -27,21 +27,16 @@ const SignIn: React.FC = () => {
   const [verificationSuccess, setVerificationSuccess] = React.useState(false);
   const [passwordResetSuccess, setPasswordResetSuccess] = React.useState(false);
 
-  // Check if redirected after successful verification or password reset
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("verified") === "true") {
       setVerificationSuccess(true);
-      // Clear the query param from URL
       window.history.replaceState({}, "", "/signin");
-      // Clear message after 5 seconds
       setTimeout(() => setVerificationSuccess(false), 5000);
     }
     if (urlParams.get("passwordReset") === "true") {
       setPasswordResetSuccess(true);
-      // Clear the query param from URL
       window.history.replaceState({}, "", "/signin");
-      // Clear message after 5 seconds
       setTimeout(() => setPasswordResetSuccess(false), 5000);
     }
   }, [location]);
