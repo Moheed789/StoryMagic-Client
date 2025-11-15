@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export default function Header() {
   const { user, signOutUser, loading } = useAuth();
   const [loc, navigate] = useLocation();
+
   const [open, setOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -42,6 +43,7 @@ export default function Header() {
       }, 200);
     }
   }, [navigate]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -109,6 +111,14 @@ export default function Header() {
                   Create Story
                 </Button>
 
+                <Button
+                  data-testid="button-pricing"
+                  variant="ghost"
+                  onClick={() => navigate('/pricing')}
+                >
+                  Pricing
+                </Button>
+
                 <div className="relative" ref={dropdownRef}>
                   <Button
                     variant="ghost"
@@ -123,11 +133,10 @@ export default function Header() {
                   >
                     {user.apiProfile?.fullName}
                     <ChevronDown
-                      className={`h-4 w-4 transform transition-transform duration-300  ${
-                        open
+                      className={`h-4 w-4 transform transition-transform duration-300  ${open
                           ? "rotate-180 text-[#8C5AF2]"
                           : "rotate-0 text-[#8C5AF2]"
-                      }`}
+                        }`}
                     />
                   </Button>
 
@@ -257,6 +266,13 @@ export default function Header() {
                       >
                         Create Story
                       </Button>
+                      <Button
+                  data-testid="button-pricing"
+                  variant="ghost"
+                  onClick={() => navigate('/pricing')}
+                >
+                  Pricing
+                </Button>
 
                       <Button
                         variant="outline"
