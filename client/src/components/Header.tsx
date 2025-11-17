@@ -277,13 +277,6 @@ export default function Header() {
                       >
                         Create Story
                       </Button>
-                      <Button
-                        data-testid="button-pricing"
-                        variant="ghost"
-                        onClick={() => navigate("/pricing")}
-                      >
-                        Pricing
-                      </Button>
 
                       <Button
                         variant="outline"
