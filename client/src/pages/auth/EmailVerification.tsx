@@ -51,7 +51,7 @@ export default function EmailVerificationCard({
             <Button
               type="submit"
               disabled={pending}
-              className="mt-2 sm:mt-0 h-[36px] px-5 bg-gradient-to-r from-[#7b45ff] to-[#6b3df0] text-white w-[124px]"
+              className="mt-2 sm:mt-0 h-[43px] px-5 bg-gradient-to-r from-[#7b45ff] to-[#6b3df0] text-white w-[124px]"
             >
               {isSubmitting ? "Confirming..." : "Confirm"}
             </Button>
