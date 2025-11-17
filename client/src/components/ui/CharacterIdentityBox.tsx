@@ -18,9 +18,10 @@ interface Character {
 
 interface CharacterIdentityBoxProps {
   storyId: string;
+  isBatchGenerating?: boolean; 
 }
 
-const CharacterIdentityBox: React.FC<CharacterIdentityBoxProps> = ({ storyId }) => {
+const CharacterIdentityBox: React.FC<CharacterIdentityBoxProps> = ({ storyId, isBatchGenerating = false }) => {
   const { toast } = useToast();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,6 +220,7 @@ const CharacterIdentityBox: React.FC<CharacterIdentityBoxProps> = ({ storyId }) 
             variant="outline"
             size="sm"
             onClick={handleEditClick}
+            disabled={isBatchGenerating || saveLoading}
             className="gap-1"
           >
             <EditIcon className="h-3 w-3" />

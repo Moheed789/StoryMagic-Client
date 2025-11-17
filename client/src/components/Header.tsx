@@ -1,4 +1,3 @@
-"use client";
 import { Button } from "@/components/ui/button";
 import {
   BookOpenIcon,
@@ -6,13 +5,13 @@ import {
   CircleDollarSign,
   LogOutIcon,
   MenuIcon,
-  SettingsIcon,
   SparklesIcon,
   UserIcon,
 } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { LoadingSpinner } from "./ui/loading";
 
 export default function Header() {
   const { user, signOutUser, loading } = useAuth();
@@ -73,8 +72,6 @@ export default function Header() {
     return null;
   }
 
-  if (loading) return null;
-
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 py-4">
@@ -92,7 +89,7 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex items-center gap-1 md:gap-3 relative ">
-            {user ? (
+            {user || loading ? (
               <>
                 <Button
                   variant="ghost"
@@ -120,35 +117,39 @@ export default function Header() {
                 </Button>
 
                 <div className="relative" ref={dropdownRef}>
-                  <Button
-                    variant="ghost"
-                    className={`
+                  {loading ? (
+                    <LoadingSpinner size="sm"/>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      className={`
                 flex items-center justify-between  rounded-lg py-[8px] px-[8px] sm:px-[16px] 
                 text-[#8C5AF2] font-medium transition-all duration-200 md:text-[14px] text-[11px]
                 ${open ? "bg-[#F0F0F0]" : ""}
                 hover:bg-[#F0F0F0]
                 
               `}
-                    onClick={() => setOpen(!open)}
-                  >
-                    {user.apiProfile?.fullName}
-                    <ChevronDown
-                      className={`h-4 w-4 transform transition-transform duration-300  ${
-                        open
-                          ? "rotate-180 text-[#8C5AF2]"
-                          : "rotate-0 text-[#8C5AF2]"
-                      }`}
-                    />
-                  </Button>
+                      onClick={() => setOpen(!open)}
+                    >
+                      {user?.apiProfile?.fullName}
+                      <ChevronDown
+                        className={`h-4 w-4 transform transition-transform duration-300  ${
+                          open
+                            ? "rotate-180 text-[#8C5AF2]"
+                            : "rotate-0 text-[#8C5AF2]"
+                        }`}
+                      />
+                    </Button>
+                  )}
 
                   {open && (
                     <div className="absolute right-0 mt-[32px]  bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
                       <div className="mb-3">
                         <h3 className="text-[16px] font-story font-[600] text-[#002014]">
-                          {user.apiProfile?.fullName}
+                          {user?.apiProfile?.fullName}
                         </h3>
                         <p className="text-[14px] font-story font-[600]  text-[#8DA99E]">
-                          {user.apiProfile?.email}
+                          {user?.apiProfile?.email}
                         </p>
                       </div>
 
@@ -217,8 +218,8 @@ export default function Header() {
             </Button>
 
             {mobileMenuOpen && (
-              <div className="absolute right-0 mt-[32px]  bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
-                {user ? (
+              <div className="absolute right-0 mt-[32px] w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
+                {user || loading ? (
                   <>
                     <div className="mb-4 flex items-center gap-4 justify-between">
                       <div>
@@ -275,6 +276,13 @@ export default function Header() {
                         }}
                       >
                         Create Story
+                      </Button>
+                      <Button
+                        data-testid="button-pricing"
+                        variant="ghost"
+                        onClick={() => navigate("/pricing")}
+                      >
+                        Pricing
                       </Button>
 
                       <Button
