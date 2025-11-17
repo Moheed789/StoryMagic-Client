@@ -92,6 +92,9 @@ export default function ChatInterface({
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
+  const bottomRef = useRef<HTMLDivElement | null>(null); // 🔥 NEW SCROLL REF
+  const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [targetAge, setTargetAge] = useState<string>("3-5 years");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -106,24 +109,20 @@ export default function ChatInterface({
   const [inputValue, setInputValue] = useState("");
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+  const isLoading = useMutation.isPending;
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [isLoading]);
 
   useEffect(() => {
     return () => {
       if (loginTimerRef.current) clearTimeout(loginTimerRef.current);
     };
   }, []);
-
-  const [loc] = useLocation();
-  useEffect(() => {
-    if (window.location.hash === "#bottom") {
-      requestAnimationFrame(() => {
-        document
-          .getElementById("bottom")
-          ?.scrollIntoView({ behavior: "smooth" });
-      });
-    }
-  }, [loc]);
 
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -137,14 +136,9 @@ export default function ChatInterface({
     }
   }
 
-  const INITIAL_DELAY_MS = 30_000;
-  const POLL_INTERVAL_MS = 20_000;
+  const INITIAL_DELAY_MS = 30000;
+  const POLL_INTERVAL_MS = 20000;
   const MAX_ATTEMPTS = 12;
-
-  type CreateResp = { storyId: string };
-  type StatusResp = {
-    status: "pending" | "processing" | "completed" | "failed" | string;
-  };
 
   const STATUS_URL = (base: string, id: string) =>
     `${base}stories/${id}/status`;
@@ -185,7 +179,7 @@ export default function ChatInterface({
         throw new Error(text || `Request failed with status ${res.status}`);
       }
 
-      return (await res.json()) as CreateResp;
+      return (await res.json()) as { storyId: string };
     },
 
     onSuccess: async ({ storyId }) => {
@@ -209,7 +203,7 @@ export default function ChatInterface({
             );
           }
 
-          const statusJson = (await statusRes.json()) as StatusResp;
+          const statusJson = await statusRes.json();
           lastStatus = statusJson?.status?.toLowerCase();
 
           if (lastStatus === "completed") break;
@@ -274,10 +268,7 @@ export default function ChatInterface({
     if (!user) {
       setShowLoginModal(true);
       if (loginTimerRef.current) clearTimeout(loginTimerRef.current);
-      loginTimerRef.current = setTimeout(
-        () => setShowLoginModal(false),
-        10_000
-      );
+      loginTimerRef.current = setTimeout(() => setShowLoginModal(false), 10000);
       return;
     }
 
@@ -316,10 +307,7 @@ export default function ChatInterface({
 
   return (
     <>
-      <Card
-        className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col mb-[65px]"
-        id="bottom"
-      >
+      <Card className="h-[500px] w-full max-w-[1280px] mx-auto flex flex-col mb-[65px]">
         <div className="p-3 sm:p-4 border-b border-card-border">
           <div className="flex items-center gap-2">
             <div className="h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -358,6 +346,7 @@ export default function ChatInterface({
                     <SparklesIcon className="h-4 w-4" />
                   )}
                 </div>
+
                 <div
                   className={`max-w-[85%] sm:max-w-[80%] ${
                     message.isUser ? "text-right" : "text-left"
@@ -372,6 +361,7 @@ export default function ChatInterface({
                   >
                     {message.content}
                   </div>
+
                   <div className="text-xs text-muted-foreground mt-1">
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
@@ -407,6 +397,8 @@ export default function ChatInterface({
                 </div>
               </div>
             )}
+
+            <div ref={bottomRef} />
           </div>
         </ScrollArea>
 
@@ -436,7 +428,6 @@ export default function ChatInterface({
                 >
                   <SelectTrigger
                     id="page-count"
-                    data-testid="select-page-count"
                     className="w-full sm:w-32 min-w-[140px]"
                   >
                     <SelectValue placeholder="Select pages" />
@@ -449,7 +440,6 @@ export default function ChatInterface({
                 </Select>
               </div>
 
-              {/* Target Age */}
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto mb-2">
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <UsersIcon className="h-4 w-4 text-muted-foreground" />
@@ -468,7 +458,6 @@ export default function ChatInterface({
                 >
                   <SelectTrigger
                     id="target-age"
-                    data-testid="select-target-age"
                     className="w-full sm:w-40 min-w-[140px]"
                   >
                     <SelectValue placeholder="Select age" />
@@ -501,8 +490,7 @@ export default function ChatInterface({
 
             <div className="flex gap-2">
               <Input
-                data-testid="input-story-idea"
-                placeholder="Describe your story idea... (e.g., 'A brave little mouse who saves the forest')"
+                placeholder="Describe your story idea..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -510,7 +498,6 @@ export default function ChatInterface({
                 className="font-story text-[11px] md:text-[14px]"
               />
               <Button
-                data-testid="button-send-message"
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || createStoryMutation.isPending}
                 size="icon"
@@ -534,7 +521,7 @@ export default function ChatInterface({
             </DialogTitle>
             <DialogDescription className="text-[18px] font-[500] text-center text-[#6F677E] font-story">
               You need to be signed in to Create a Story. Please log in to
-              continue
+              continue.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="w-full sm:justify-start">
