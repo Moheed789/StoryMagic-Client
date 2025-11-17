@@ -218,7 +218,7 @@ export default function Header() {
             </Button>
 
             {mobileMenuOpen && (
-              <div className="absolute right-0 mt-[32px] w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
+              <div className="absolute right-0 mt-[32px]  bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
                 {user || loading ? (
                   <>
                     <div className="mb-4 flex items-center gap-4 justify-between">
