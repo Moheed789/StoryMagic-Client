@@ -1,17 +1,17 @@
-"use client";
 import { Button } from "@/components/ui/button";
 import {
   BookOpenIcon,
   ChevronDown,
+  CircleDollarSign,
   LogOutIcon,
   MenuIcon,
-  SettingsIcon,
   SparklesIcon,
   UserIcon,
 } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { LoadingSpinner } from "./ui/loading";
 
 export default function Header() {
   const { user, signOutUser, loading } = useAuth();
@@ -44,7 +44,6 @@ export default function Header() {
     }
   }, [navigate]);
 
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -69,11 +68,9 @@ export default function Header() {
     navigate("/SignIn");
   };
 
-  if (loc.startsWith('/generated-story')) {
+  if (loc.startsWith("/generated-story")) {
     return null;
   }
-
-  if (loading) return null;
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -92,7 +89,7 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex items-center gap-1 md:gap-3 relative ">
-            {user ? (
+            {user || loading ? (
               <>
                 <Button
                   variant="ghost"
@@ -114,40 +111,45 @@ export default function Header() {
                 <Button
                   data-testid="button-pricing"
                   variant="ghost"
-                  onClick={() => navigate('/pricing')}
+                  onClick={() => navigate("/pricing")}
                 >
                   Pricing
                 </Button>
 
                 <div className="relative" ref={dropdownRef}>
-                  <Button
-                    variant="ghost"
-                    className={`
+                  {loading ? (
+                    <LoadingSpinner size="sm"/>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      className={`
                 flex items-center justify-between  rounded-lg py-[8px] px-[8px] sm:px-[16px] 
                 text-[#8C5AF2] font-medium transition-all duration-200 md:text-[14px] text-[11px]
                 ${open ? "bg-[#F0F0F0]" : ""}
                 hover:bg-[#F0F0F0]
                 
               `}
-                    onClick={() => setOpen(!open)}
-                  >
-                    {user.apiProfile?.fullName}
-                    <ChevronDown
-                      className={`h-4 w-4 transform transition-transform duration-300  ${open
-                          ? "rotate-180 text-[#8C5AF2]"
-                          : "rotate-0 text-[#8C5AF2]"
+                      onClick={() => setOpen(!open)}
+                    >
+                      {user?.apiProfile?.fullName}
+                      <ChevronDown
+                        className={`h-4 w-4 transform transition-transform duration-300  ${
+                          open
+                            ? "rotate-180 text-[#8C5AF2]"
+                            : "rotate-0 text-[#8C5AF2]"
                         }`}
-                    />
-                  </Button>
+                      />
+                    </Button>
+                  )}
 
                   {open && (
-                    <div className="absolute right-0 mt-[32px] w-64 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
+                    <div className="absolute right-0 mt-[32px]  bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50">
                       <div className="mb-3">
                         <h3 className="text-[16px] font-story font-[600] text-[#002014]">
-                          {user.apiProfile?.fullName}
+                          {user?.apiProfile?.fullName}
                         </h3>
                         <p className="text-[14px] font-story font-[600]  text-[#8DA99E]">
-                          {user.apiProfile?.email}
+                          {user?.apiProfile?.email}
                         </p>
                       </div>
 
@@ -217,9 +219,9 @@ export default function Header() {
 
             {mobileMenuOpen && (
               <div className="absolute right-0 mt-[32px] w-80 bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
-                {user ? (
+                {user || loading ? (
                   <>
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-4 flex items-center gap-4 justify-between">
                       <div>
                         <h3 className="text-[16px] font-story font-[600] text-[#002014]">
                           {user.apiProfile?.fullName || "John Smith"}
@@ -239,8 +241,8 @@ export default function Header() {
                       </button>
                     </div>
 
-                    <hr className="my-4 border-[#E8EDEB]" />
-                    <div className="space-y-3 mb-4">
+                    <hr className="my-2 border-[#E8EDEB]" />
+                    <div className="space-y-2 ">
                       <button
                         className="flex items-center gap-3 text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-left text-[14px] p-2 rounded-lg hover:bg-gray-50"
                         onClick={() => {
@@ -252,8 +254,17 @@ export default function Header() {
                         <span>User Profile</span>
                       </button>
                     </div>
-
-                    <hr className="my-4 border-[#E8EDEB]" />
+                    <hr className="my-1 border-[#E8EDEB]" />
+                    <div className="space-y-2 mb-3">
+                      <button
+                        data-testid="button-pricing"
+                        className="flex items-center gap-3 text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-left text-[14px] p-2 rounded-lg hover:bg-gray-50"
+                        onClick={() => navigate("/pricing")}
+                      >
+                        <CircleDollarSign className="h-4 w-4" />
+                        <span>Pricing</span>
+                      </button>
+                    </div>
 
                     <div className="space-y-3">
                       <Button
@@ -267,12 +278,12 @@ export default function Header() {
                         Create Story
                       </Button>
                       <Button
-                  data-testid="button-pricing"
-                  variant="ghost"
-                  onClick={() => navigate('/pricing')}
-                >
-                  Pricing
-                </Button>
+                        data-testid="button-pricing"
+                        variant="ghost"
+                        onClick={() => navigate("/pricing")}
+                      >
+                        Pricing
+                      </Button>
 
                       <Button
                         variant="outline"

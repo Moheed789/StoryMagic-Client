@@ -7,9 +7,7 @@ import { Label } from "@/components/ui/label";
 import { EditIcon, ImageIcon, RefreshCwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { useAuth } from "@/context/AuthContext";
 import { useRoute } from "wouter";
-import CharacterIdentityBox from "./ui/CharacterIdentityBox";
 
 type PageType = "COVER_FRONT" | "COVER_BACK" | "PAGE";
 
@@ -53,6 +51,7 @@ export default function StoryPageEditor({
   onRegisterSaveFunction,
   onUnregisterSaveFunction,
 }: StoryPageEditorProps) {
+  console.log({ hideStoryText, pageType: page?.type });
   const [isEditing, setIsEditing] = useState(false);
   const [editedPage, setEditedPage] = useState<StoryPage>(page);
   const [img, setImage] = useState<string | null>(page.imageUrl ?? null);
@@ -311,14 +310,6 @@ export default function StoryPageEditor({
 
   return (
     <>
-      <Card>
-        {isFrontCover && (
-          <div className="mt-8">
-            <CharacterIdentityBox storyId={storyId} />
-          </div>
-        )}
-      </Card>
-
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -335,6 +326,7 @@ export default function StoryPageEditor({
                 variant="outline"
                 size="sm"
                 onClick={() => setIsEditing(true)}
+                disabled={isBatchGenerating || isGenerating || isSaving}
                 className="gap-1"
               >
                 <EditIcon className="h-3 w-3" />

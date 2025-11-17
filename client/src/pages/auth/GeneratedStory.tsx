@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { RefreshCwIcon } from "lucide-react";
@@ -8,6 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { useLocation, useRoute } from "wouter";
+import { Card } from "@/components/ui/card";
+import CharacterIdentityBox from "@/components/ui/CharacterIdentityBox";
 
 type Story = {
   id: string;
@@ -27,6 +29,7 @@ type PageWithStatus = {
   imageUrl?: string | null;
   status?: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   errorMessage?: string | null;
+  type?: "COVER_FRONT" | "COVER_BACK" | "PAGE";
 };
 
 type StoryDetailsResponse = {
@@ -56,6 +59,8 @@ const GeneratedStory: React.FC = () => {
   const { characterDescription } = useAuth();
   const { currentStory, setCurrentPages, currentPages, setCurrentStory } =
     useAuth() as any;
+
+  const pages = currentPages || [];
 
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -122,7 +127,16 @@ const GeneratedStory: React.FC = () => {
         if (res.ok) {
           const data: StoryDetailsResponse = await res.json();
           const pages = data.pages || [];
-          setCurrentPages(pages);
+
+          setCurrentPages((prevPages: PageWithStatus[] = []) =>
+            pages.map((p) => {
+              const previous = prevPages.find((prev) => prev.id === p.id);
+              return {
+                ...previous,
+                ...p,
+              };
+            })
+          );
 
           const anyFailed = pages.some(
             (p) => p.status?.toUpperCase() === "FAILED"
@@ -290,13 +304,45 @@ const GeneratedStory: React.FC = () => {
           </p>
         </div>
 
-        {(currentPages || []).map((page: PageWithStatus) => (
-          <StoryPageEditor
-            key={page.id}
-            page={page}
-            isBatchGenerating={isGenerating && !page.imageUrl}
-          />
-        ))}
+        {pages.map((page: PageWithStatus, index: number) => {
+          const total = pages.length;
+
+          const normalizedType: "COVER_FRONT" | "COVER_BACK" | "PAGE" =
+            index === 0
+              ? "COVER_FRONT"
+              : index === total - 1
+              ? "COVER_BACK"
+              : "PAGE";
+
+          const normalizedPage: PageWithStatus = {
+            ...page,
+            type: normalizedType,
+          };
+
+          return (
+            <React.Fragment key={page.id}>
+              {index === 0 && (
+                <Card className="mb-6">
+                  <div className="mt-8">
+                    <CharacterIdentityBox
+                      storyId={storyId!}
+                      isBatchGenerating={
+                        isGenerating || batchGenerateImagesMutation.isPending
+                      }
+                    />
+                  </div>
+                </Card>
+              )}
+
+              <StoryPageEditor
+                page={normalizedPage}
+                pageIndex={index}
+                totalPages={total}
+                isBatchGenerating={isGenerating && !page.imageUrl}
+              />
+            </React.Fragment>
+          );
+        })}
       </div>
 
       <div className="bg-card border rounded-lg p-6 max-w-3xl mx-auto mb-8 text-center mt-8">

@@ -18,11 +18,11 @@ import Privacy from "./pages/auth/Privacy";
 import Footer from "./components/Footer";
 
 function Router() {
-  const { loading } = useAuth();
+  // const { loading } = useAuth();
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  // if (loading) {
+  //   return <LoadingScreen />;
+  // }
 
   return (
     <Switch>
