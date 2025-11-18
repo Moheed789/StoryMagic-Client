@@ -118,7 +118,7 @@ export default function Header() {
 
                 <div className="relative" ref={dropdownRef}>
                   {loading ? (
-                    <LoadingSpinner size="sm"/>
+                    <LoadingSpinner size="sm" />
                   ) : (
                     <Button
                       variant="ghost"
@@ -204,6 +204,13 @@ export default function Header() {
                 >
                   Register
                 </Button>
+                <Button
+                  data-testid="button-pricing"
+                  variant="ghost"
+                  onClick={() => navigate("/pricing")}
+                >
+                  Pricing
+                </Button>
               </>
             )}
           </nav>
@@ -218,7 +225,11 @@ export default function Header() {
             </Button>
 
             {mobileMenuOpen && (
-              <div className="absolute right-0 mt-[32px]  bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ">
+              <div
+                className={`absolute right-0 mt-[32px] bg-white rounded-[16px] shadow-lg border border-gray-200 p-5 z-50 ${
+                  !user && !loading ? "w-[200px]" : ""
+                }`}
+              >
                 {user || loading ? (
                   <>
                     <div className="mb-4 flex items-center gap-4 justify-between">
@@ -293,6 +304,14 @@ export default function Header() {
                 ) : (
                   <>
                     <div className="space-y-3">
+                      <button
+                        data-testid="button-pricing"
+                        className="flex items-center gap-1 text-[#515B57] font-story font-[500] hover:text-[#8C5AF2] w-full text-left text-[14px] p-2 rounded-lg hover:bg-gray-50"
+                        onClick={() => navigate("/pricing")}
+                      >
+                        <CircleDollarSign className="h-4 w-4" />
+                        <span>Pricing</span>
+                      </button>
                       <Button
                         variant="outline"
                         className="w-full"

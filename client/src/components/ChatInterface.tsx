@@ -92,7 +92,8 @@ export default function ChatInterface({
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
-  const bottomRef = useRef<HTMLDivElement | null>(null); // 🔥 NEW SCROLL REF
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const hasMountedRef = useRef(false);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [targetAge, setTargetAge] = useState<string>("3-5 years");
@@ -111,12 +112,13 @@ export default function ChatInterface({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-  const isLoading = useMutation.isPending;
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [isLoading]);
 
   useEffect(() => {
     return () => {
