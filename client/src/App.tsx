@@ -16,13 +16,9 @@ import StoryCreator from "./pages/auth/StoryCreator";
 import Terms from "./pages/auth/Terms";
 import Privacy from "./pages/auth/Privacy";
 import Footer from "./components/Footer";
+import ExamplesSection from "./pages/auth/Examples";
 
 function Router() {
-  // const { loading } = useAuth();
-
-  // if (loading) {
-  //   return <LoadingScreen />;
-  // }
 
   return (
     <Switch>
@@ -42,6 +38,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/examples" component={ExamplesSection} />
       <Route>
         <NotFound />
       </Route>
