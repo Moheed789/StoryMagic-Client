@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import { routes } from "./routes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicOnlyRoute } from "@/components/PublicOnlyRoute";
@@ -17,9 +17,9 @@ import Terms from "./pages/auth/Terms";
 import Privacy from "./pages/auth/Privacy";
 import Footer from "./components/Footer";
 import ExamplesSection from "./pages/auth/Examples";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 function Router() {
-
   return (
     <Switch>
       {routes.map((route) => (
@@ -54,6 +54,7 @@ function App() {
           <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors">
             <RegistrationSuccessModal />
             <Header />
+            <ScrollToTop />
             <main className="flex-1">
               <Router />
             </main>
