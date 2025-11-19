@@ -52,7 +52,7 @@ const SignUp: React.FC = () => {
   const [showPass, setShowPass] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
-  const [showTerms, setShowTerms] = React.useState(false); 
+  const [showTerms, setShowTerms] = React.useState(false);
   const RESEND_SECONDS = 60;
   const [secondsLeft, setSecondsLeft] = React.useState(RESEND_SECONDS);
   const startCountdown = (start = RESEND_SECONDS) => setSecondsLeft(start);
@@ -145,7 +145,7 @@ const SignUp: React.FC = () => {
         onClose={() => setShowTerms(false)}
         title="Terms & Conditions"
         maxWidth="w-full sm:max-w-[700px]"
-        className="px-0" 
+        className="px-0"
       >
         <div className="px-3 sm:px-6 pb-6 pt-3">
           <Card className="bg-[#F8F5FF] border border-[#E0D6FF] shadow-sm rounded-2xl">
@@ -643,10 +643,6 @@ const SignUp: React.FC = () => {
                   </p>
                 </div>
               </section>
-
-              <div className="pt-4 border-t border-[#E0D6FF] text-xs sm:text-sm text-muted-foreground flex justify-between flex-wrap gap-2">
-                <p>StoryBloom · Making magical stories with safe AI</p>
-              </div>
             </CardContent>
           </Card>
         </div>
