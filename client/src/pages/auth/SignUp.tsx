@@ -18,8 +18,9 @@ const signUpSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z
     .string()
-    .min(8, "At least 8 characters, 1 uppercase, 1 special character")
+    .min(8, "At least 8 characters, 1 uppercase, 1 special character, 1 number")
     .regex(/[A-Z]/, "Include at least 1 uppercase letter")
+    .regex(/[0-9]/, "Include at least 1 number")
     .regex(
       /[-!@#$%^&*()[\]{};:'",.<>/?\\|`~_+=]/,
       "Include at least 1 special character"
@@ -53,8 +54,31 @@ const SignUp: React.FC = () => {
   const [pending, setPending] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [showTerms, setShowTerms] = React.useState(false);
+
   const RESEND_SECONDS = 60;
   const [secondsLeft, setSecondsLeft] = React.useState(RESEND_SECONDS);
+  const countdownRef = React.useRef<NodeJS.Timeout | null>(null);
+  React.useEffect(() => {
+    if (secondsLeft > 0 && !countdownRef.current) {
+      countdownRef.current = setInterval(() => {
+        setSecondsLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current!);
+            countdownRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
+    };
+  }, [secondsLeft]);
+
   const startCountdown = (start = RESEND_SECONDS) => setSecondsLeft(start);
 
   const {
@@ -63,6 +87,7 @@ const SignUp: React.FC = () => {
     formState: { errors, isValid },
     getValues,
     trigger,
+    setValue,
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
     mode: "onChange",
@@ -84,6 +109,50 @@ const SignUp: React.FC = () => {
     mode: "onChange",
     defaultValues: { code: "" },
   });
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stepParam = params.get("step");
+    if (!stepParam) {
+      setStep("form");
+    }
+  }, [setStep]);
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stepParam = params.get("step");
+    const emailParam = params.get("email");
+
+    if (stepParam === "verify") {
+      setStep("verify");
+
+      const formEmail = getValues("email");
+      if (!formEmail && emailParam) {
+        setValue("email", emailParam, { shouldValidate: true });
+      }
+
+      setSecondsLeft(0);
+    }
+  }, [location, setStep, getValues, setValue]);
+
+  const handleManualResend = async () => {
+    if (secondsLeft > 0) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const emailFromUrl = params.get("email") || "";
+      const email = (getValues("email") || emailFromUrl || "").trim();
+
+      if (!email) {
+        setServerError("Email is required to resend verification code");
+        return;
+      }
+
+      await resendSignUpUser(email);
+      setSecondsLeft(RESEND_SECONDS);
+    } catch (err) {
+      setServerError(readableAuthError(err));
+    }
+  };
+
   const onSubmitSignUp = async (data: SignUpForm) => {
     setServerError(null);
     setPending(true);
@@ -105,7 +174,10 @@ const SignUp: React.FC = () => {
   const onSubmitVerify = async ({ code }: VerifyForm) => {
     setServerError(null);
     setPending(true);
-    const email = getValues("email");
+
+    const params = new URLSearchParams(window.location.search);
+    const urlEmail = params.get("email");
+    const email = (getValues("email") || urlEmail || "").trim();
     const password = getValues("password");
 
     if (!email) {
@@ -772,7 +844,35 @@ const SignUp: React.FC = () => {
               pending={pending || !verifyValid}
               isSubmitting={pending}
               onConfirm={handleVerifySubmit(onSubmitVerify)}
-              onResend={() => console.log("Resend logic")}
+              onResend={async () => {
+                if (secondsLeft > 0) return;
+                try {
+                  setPending(true);
+                  setServerError(null);
+
+                  const params = new URLSearchParams(window.location.search);
+                  const emailFromUrl = params.get("email") || "";
+                  const email = (
+                    getValues("email") ||
+                    emailFromUrl ||
+                    ""
+                  ).trim();
+
+                  if (!email) {
+                    setServerError(
+                      "Email is required to resend verification code"
+                    );
+                    return;
+                  }
+
+                  await resendSignUpUser(email);
+                  setSecondsLeft(RESEND_SECONDS);
+                } catch (err: any) {
+                  setServerError(readableAuthError(err));
+                } finally {
+                  setPending(false);
+                }
+              }}
             />
           )}
         </div>
