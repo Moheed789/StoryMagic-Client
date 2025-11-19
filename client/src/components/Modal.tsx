@@ -23,7 +23,7 @@ const Modal: React.FC<ModalProps> = ({
   disableClose = false,
 }) => {
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen) { 
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = "";
