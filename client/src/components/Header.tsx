@@ -29,7 +29,7 @@ export default function Header() {
         const offset =
           el.getBoundingClientRect().top +
           window.scrollY -
-          window.innerHeight / 3;
+          window.innerHeight / 7;
         window.scrollTo({ top: offset, behavior: "smooth" });
       }
     };
@@ -190,7 +190,6 @@ export default function Header() {
               <>
                 <button
                   data-testid="button-pricing"
-                  //
                   className="md:text-[14px] font-[500] text-[11px] py-[8px] px-[11px] sm:px-[16px]"
                   onClick={() => navigate("/pricing")}
                 >

@@ -80,7 +80,10 @@ export default function EmailVerificationCard({
               Resend
             </button>
             <p className="text-center font-mono text-[14px] text-[#8DA99E]">
-              {secondsLeft > 0 && `0:${String(secondsLeft).padStart(2, "0")}`}
+              {secondsLeft > 0 &&
+                `${Math.floor(secondsLeft / 60)}:${String(
+                  secondsLeft % 60
+                ).padStart(2, "0")}`}
             </p>
           </div>
         </div>
