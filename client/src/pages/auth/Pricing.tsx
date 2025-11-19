@@ -1,7 +1,26 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Download, BookOpen, Sparkles, Package, Truck, TruckIcon, Clock, Shield, Heart, Star } from "lucide-react";
+import {
+  CheckCircle2,
+  Download,
+  BookOpen,
+  Sparkles,
+  Truck,
+  TruckIcon,
+  Clock,
+  Shield,
+  Heart,
+  Star,
+} from "lucide-react";
 import { useState } from "react";
 import confetti from "canvas-confetti";
 import { useLocation } from "wouter";
@@ -10,24 +29,33 @@ export default function Pricing() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [, setLocation] = useLocation();
 
+  const scrollToCartoonSection = () => {
+    const el = document.getElementById("cartoon-style");
+    if (el) {
+      const offset =
+        el.getBoundingClientRect().top +
+        window.scrollY -
+        window.innerHeight / 7;
+      window.scrollTo({ top: offset, behavior: "smooth" });
+    }
+  };
+
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);
+
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#8B5CF6', '#EC4899', '#F59E0B'],
+      colors: ["#8B5CF6", "#EC4899", "#F59E0B"],
     });
-    
+
     setTimeout(() => {
-      setLocation('/');
+      setLocation("/");
       setTimeout(() => {
-        const section = document.getElementById('cartoon-style-section');
-        if (section) {
-          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    }, 1000);
+        scrollToCartoonSection();
+      }, 250);
+    }, 800);
   };
 
   const digitalFeatures = [
@@ -86,7 +114,8 @@ export default function Pricing() {
 
   const testimonials = [
     {
-      quote: "My daughter was absolutely thrilled to see herself as the hero of her own story!",
+      quote:
+        "My daughter was absolutely thrilled to see herself as the hero of her own story!",
       author: "Sarah M.",
       role: "Parent of 2",
     },
@@ -96,7 +125,8 @@ export default function Pricing() {
       role: "Dad",
     },
     {
-      quote: "Such a special gift for my niece's birthday. She reads it every night!",
+      quote:
+        "Such a special gift for my niece's birthday. She reads it every night!",
       author: "Emma L.",
       role: "Aunt",
     },
@@ -105,7 +135,6 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-primary/5">
       <div className="container mx-auto px-6 py-16">
-        {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 mb-4">
             <Sparkles className="h-6 w-6 text-primary" />
@@ -124,23 +153,29 @@ export default function Pricing() {
             Digital Magic or Printed Keepsake?
           </p>
         </div>
-
-        {/* Digital Package */}
         <div className="max-w-4xl mx-auto mb-20">
           <h2 className="text-3xl font-display font-bold text-center mb-8 flex items-center justify-center gap-2">
             <Download className="h-8 w-8 text-primary" />
             Digital Storybook
           </h2>
-          <Card className={`hover-elevate transition-all duration-300 border-2 ${selectedPlan === 'digital' ? 'border-primary shadow-lg shadow-primary/20' : 'border-border'}`}>
+          <Card
+            className={`hover-elevate transition-all duration-300 border-2 ${
+              selectedPlan === "digital"
+                ? "border-primary shadow-lg shadow-primary/20"
+                : "border-border"
+            }`}
+          >
             <CardHeader className="text-center pb-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center">
                   <Download className="h-6 w-6 text-primary-foreground" />
                 </div>
               </div>
-              <CardTitle className="text-2xl font-display">Download Only</CardTitle>
+              <CardTitle className="text-2xl font-display">
+                Download Only
+              </CardTitle>
               <CardDescription className="text-base font-story">
-                Bring your story to life instantly — no printing required.
+                Bring your story to life instantly, no printing required.
               </CardDescription>
               <div className="mt-4">
                 <span className="text-5xl font-bold text-primary">$2.99</span>
@@ -161,7 +196,7 @@ export default function Pricing() {
                 data-testid="button-select-digital"
                 size="lg"
                 className="gap-2 px-8"
-                onClick={() => handleSelectPlan('digital')}
+                onClick={() => handleSelectPlan("digital")}
               >
                 <Sparkles className="h-4 w-4" />
                 Create My Story
@@ -170,7 +205,6 @@ export default function Pricing() {
           </Card>
         </div>
 
-        {/* Printed Packages */}
         <div className="mb-16">
           <h2 className="text-3xl font-display font-bold text-center mb-8 flex items-center justify-center gap-2">
             <BookOpen className="h-8 w-8 text-primary" />
@@ -181,8 +215,10 @@ export default function Pricing() {
               <Card
                 key={tier.id}
                 className={`hover-elevate transition-all duration-300 border-2 relative ${
-                  selectedPlan === tier.id ? 'border-primary shadow-lg shadow-primary/20' : 'border-border'
-                } ${tier.popular ? 'md:scale-105' : ''}`}
+                  selectedPlan === tier.id
+                    ? "border-primary shadow-lg shadow-primary/20"
+                    : "border-border"
+                } ${tier.popular ? "md:scale-105" : ""}`}
               >
                 {tier.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -199,16 +235,23 @@ export default function Pricing() {
                     </div>
                   </div>
                   <div className="mb-2">
-                    <Badge variant="secondary" className="text-base font-bold px-4 py-1">
+                    <Badge
+                      variant="secondary"
+                      className="text-base font-bold px-4 py-1"
+                    >
                       {tier.pages}
                     </Badge>
                   </div>
-                  <CardTitle className="text-xl font-display">{tier.name}</CardTitle>
+                  <CardTitle className="text-xl font-display">
+                    {tier.name}
+                  </CardTitle>
                   <CardDescription className="text-sm font-story italic">
                     {tier.tagline}
                   </CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-primary">{tier.price}</span>
+                    <span className="text-4xl font-bold text-primary">
+                      {tier.price}
+                    </span>
                   </div>
                 </CardHeader>
                 <CardContent className="pb-6">
@@ -237,13 +280,14 @@ export default function Pricing() {
             ))}
           </div>
 
-          {/* Shipping Options */}
           <div className="max-w-2xl mx-auto mt-12">
             <Card className="bg-card/50 backdrop-blur">
               <CardHeader className="text-center pb-4">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Truck className="h-6 w-6 text-primary" />
-                  <CardTitle className="text-xl font-display">Shipping Options</CardTitle>
+                  <CardTitle className="text-xl font-display">
+                    Shipping Options
+                  </CardTitle>
                 </div>
                 <CardDescription className="font-story italic">
                   Every book is made-to-order with care.
@@ -264,10 +308,14 @@ export default function Pricing() {
                         )}
                         <div>
                           <p className="font-semibold">{option.method}</p>
-                          <p className="text-sm text-muted-foreground">{option.delivery}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {option.delivery}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-lg font-bold text-primary">{option.price}</span>
+                      <span className="text-lg font-bold text-primary">
+                        {option.price}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -276,28 +324,32 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Trust Elements */}
         <div className="max-w-4xl mx-auto mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div className="flex flex-col items-center gap-2">
               <Shield className="h-10 w-10 text-primary" />
-              <h3 className="font-semibold">Safe & Secure</h3>
-              <p className="text-sm text-muted-foreground font-story">Safe & secure checkout</p>
+              <h3 className="font-semibold">Safe &amp; Secure</h3>
+              <p className="text-sm text-muted-foreground font-story">
+                Safe &amp; secure checkout
+              </p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Heart className="h-10 w-10 text-primary" />
               <h3 className="font-semibold">Kid-Friendly</h3>
-              <p className="text-sm text-muted-foreground font-story">Kid-friendly platform</p>
+              <p className="text-sm text-muted-foreground font-story">
+                Kid-friendly platform
+              </p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <BookOpen className="h-10 w-10 text-primary" />
               <h3 className="font-semibold">Worldwide</h3>
-              <p className="text-sm text-muted-foreground font-story">Proudly printing stories worldwide</p>
+              <p className="text-sm text-muted-foreground font-story">
+                Proudly printing stories worldwide
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Testimonials */}
         <div className="max-w-6xl mx-auto mb-16">
           <h2 className="text-3xl font-display font-bold text-center mb-10">
             Loved by Families Everywhere
@@ -308,7 +360,10 @@ export default function Pricing() {
                 <CardHeader>
                   <div className="flex gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-primary text-primary"
+                      />
                     ))}
                   </div>
                   <CardDescription className="text-base font-story italic">
@@ -317,14 +372,15 @@ export default function Pricing() {
                 </CardHeader>
                 <CardContent>
                   <p className="font-semibold text-sm">{testimonial.author}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {testimonial.role}
+                  </p>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
 
-        {/* Final CTA */}
         <div className="max-w-4xl mx-auto">
           <Card className="bg-gradient-to-r from-primary/10 via-chart-2/10 to-primary/10 border-2 border-primary/20">
             <CardContent className="text-center py-12">
@@ -337,13 +393,14 @@ export default function Pricing() {
                 Ready to bring your imagination to life?
               </h2>
               <p className="text-lg text-muted-foreground font-story mb-6">
-                Start creating magical stories that your children will treasure forever.
+                Start creating magical stories that your children will treasure
+                forever.
               </p>
               <Button
                 data-testid="button-start-creating"
                 size="lg"
                 className="gap-2 px-8"
-                onClick={() => handleSelectPlan('cta')}
+                onClick={() => handleSelectPlan("cta")}
               >
                 <Sparkles className="h-4 w-4" />
                 Create My Story

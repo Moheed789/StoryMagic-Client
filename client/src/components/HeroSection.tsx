@@ -78,7 +78,7 @@ export default function HeroSection() {
                       const offset =
                         el.getBoundingClientRect().top +
                         window.scrollY -
-                        window.innerHeight / 3;
+                        window.innerHeight / 7;
                       window.scrollTo({ top: offset, behavior: "smooth" });
                     }
                   }}

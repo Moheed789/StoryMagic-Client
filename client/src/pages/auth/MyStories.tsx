@@ -109,17 +109,17 @@ const MyStories: React.FC = () => {
   const [selectedDownloadOption, setSelectedDownloadOption] = useState<{
     [storyId: string]: "pdf_only" | "pdf_and_book";
   }>({});
-  
+
   const [storyPreviewCounts, setStoryPreviewCounts] = useState<{
     [storyId: string]: number;
   }>({});
-  
+
   const [previewsPurchased, setPreviewsPurchased] = useState<{
     [storyId: string]: boolean;
   }>({});
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
   const [unlockModalStoryId, setUnlockModalStoryId] = useState<string>("");
-  
+
   const [showBookFormFor, setShowBookForm] = useState<string | null>(null);
   const [bookForm, setBookForm] = useState<BookPurchaseForm | null>(null);
 
@@ -129,7 +129,9 @@ const MyStories: React.FC = () => {
       const token = session?.tokens?.idToken?.toString();
 
       const res = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/stories/${storyId}/preview-count?userId=${userId}`,
+        `${
+          import.meta.env.VITE_BASE_URL
+        }/stories/${storyId}/preview-count?userId=${userId}`,
         {
           method: "PUT",
           headers: {
@@ -204,7 +206,7 @@ const MyStories: React.FC = () => {
 
         if (data?.stories && Array.isArray(data.stories)) {
           setStories(data.stories);
-          
+
           const counts: { [key: string]: number } = {};
           for (const story of data.stories) {
             counts[story.storyId] = story.previewCount ?? 3;
@@ -786,9 +788,9 @@ const MyStories: React.FC = () => {
       if (!purchased && userId) {
         const newCount = await updatePreviewCount(storyId, userId);
         if (newCount !== null) {
-          setStoryPreviewCounts(prev => ({
+          setStoryPreviewCounts((prev) => ({
             ...prev,
-            [storyId]: newCount
+            [storyId]: newCount,
           }));
         }
       }
@@ -844,9 +846,7 @@ const MyStories: React.FC = () => {
         <div>
           <p className="text-[14px] text-[#6F677E] flex items-center gap-2 justify-end">
             Free Previews:
-            <span className="text-[#34C759] font-medium">
-              {count} Left
-            </span>
+            <span className="text-[#34C759] font-medium">{count} Left</span>
           </p>
         </div>
       );
@@ -871,7 +871,6 @@ const MyStories: React.FC = () => {
       </div>
     );
   };
-
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -997,17 +996,19 @@ const MyStories: React.FC = () => {
                     <div
                       className="absolute inset-0 bg-cover bg-center blur-2xl "
                       style={{
-                        backgroundImage: `url(${story.coverImageUrl || "/placeholder-cover.jpg"})`,
-                        backgroundColor: '#00000047',
+                        backgroundImage: `url(${
+                          story.coverImageUrl || "/placeholder-cover.jpg"
+                        })`,
+                        backgroundColor: "#00000047",
                       }}
                     />
-                    
+
                     <img
                       src={story.coverImageUrl || "/placeholder-cover.jpg"}
                       alt={story.title}
                       className="relative w-full h-full object-contain z-10"
                     />
-                    
+
                     <button
                       onClick={() =>
                         openDeleteModal(
