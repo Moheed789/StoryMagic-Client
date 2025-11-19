@@ -82,7 +82,10 @@ export default function Header() {
             </div>
             <h1
               className="text-md md:text-xl font-display font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent cursor-pointer"
-              onClick={() => navigate("/")}
+              onClick={() => {
+                navigate("/");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
             >
               StoryBloom
             </h1>
@@ -91,6 +94,13 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-1 md:gap-3 relative ">
             {user || loading ? (
               <>
+                <button
+                  data-testid="button-pricing"
+                  className="md:text-[14px] font-[500] text-[11px] py-[8px] px-[11px] sm:px-[16px] "
+                  onClick={() => navigate("/pricing")}
+                >
+                  Pricing
+                </button>
                 <Button
                   variant="ghost"
                   className="border border-[#D2D2D2] md:text-[14px] text-[11px] py-[8px] px-[11px] sm:px-[16px] "
@@ -106,14 +116,6 @@ export default function Header() {
                 >
                   <SparklesIcon className="h-4 w-4" />
                   Create Story
-                </Button>
-
-                <Button
-                  data-testid="button-pricing"
-                  variant="ghost"
-                  onClick={() => navigate("/pricing")}
-                >
-                  Pricing
                 </Button>
 
                 <div className="relative" ref={dropdownRef}>
@@ -186,6 +188,14 @@ export default function Header() {
               </>
             ) : (
               <>
+                <button
+                  data-testid="button-pricing"
+                  //
+                  className="md:text-[14px] font-[500] text-[11px] py-[8px] px-[11px] sm:px-[16px]"
+                  onClick={() => navigate("/pricing")}
+                >
+                  Pricing
+                </button>
                 <Button
                   data-testid="button-see-examples"
                   variant="outline"
@@ -203,13 +213,6 @@ export default function Header() {
                   onClick={() => navigate("/signup")}
                 >
                   Register
-                </Button>
-                <Button
-                  data-testid="button-pricing"
-                  variant="ghost"
-                  onClick={() => navigate("/pricing")}
-                >
-                  Pricing
                 </Button>
               </>
             )}
