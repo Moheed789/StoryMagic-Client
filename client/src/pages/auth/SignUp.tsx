@@ -55,7 +55,7 @@ const SignUp: React.FC = () => {
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [showTerms, setShowTerms] = React.useState(false);
 
-  const RESEND_SECONDS = 60;
+  const RESEND_SECONDS = 180;
   const [secondsLeft, setSecondsLeft] = React.useState(RESEND_SECONDS);
   const countdownRef = React.useRef<NodeJS.Timeout | null>(null);
   React.useEffect(() => {
