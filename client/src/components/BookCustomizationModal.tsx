@@ -44,7 +44,6 @@ const SHIPPING_PRICES: Record<
   },
 };
 
-
 const CITY_TO_STATE: Record<string, string> = {
   "New York": "NY",
   "Los Angeles": "CA",
@@ -131,7 +130,6 @@ const formatUSPhone = (digits: string) => {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 };
 
-
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -188,7 +186,7 @@ const BookCustomizationModal: React.FC<Props> = ({
       });
       return false;
     }
-    
+
     return true;
   };
 

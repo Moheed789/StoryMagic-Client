@@ -992,9 +992,9 @@ const MyStories: React.FC = () => {
                 className="rounded-[20px] border border-[#CCD8D3] w-[497px] shadow-sm overflow-hidden relative bg-white"
               >
                 <div className="relative w-full">
-                  <div className="relative h-[340px] w-full rounded-[16px] overflow-hidden ">
+                  <div className="relative h-[340px] w-full rounded-[16px] overflow-hidden">
                     <div
-                      className="absolute inset-0 bg-cover bg-center blur-2xl "
+                      className="absolute inset-0 bg-cover bg-center blur-2xl z-0"
                       style={{
                         backgroundImage: `url(${
                           story.coverImageUrl || "/placeholder-cover.jpg"
@@ -1002,6 +1002,15 @@ const MyStories: React.FC = () => {
                         backgroundColor: "#00000047",
                       }}
                     />
+
+                    <button className="absolute bottom-3 left-5 flex items-center gap-1 bg-white px-4 py-1.5 rounded-full shadow-md border border-gray-200 z-20">
+                      <span className="text-[12px] font-medium font-story text-[#24212C]">
+                        Status:
+                      </span>
+                      <span className="text-[12px] font-bold font-story text-[#34C759]">
+                        {story.status || "Printing"}
+                      </span>
+                    </button>
 
                     <img
                       src={story.coverImageUrl || "/placeholder-cover.jpg"}
@@ -1025,6 +1034,14 @@ const MyStories: React.FC = () => {
                 </div>
 
                 <div className="p-3 md:p-6 ">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[12px] font-medium font-story text-[#24212C]">
+                      Expected Delivery:
+                    </span>
+                    <span className="text-[12px] font-bold font-story text-[#34C759]">
+                      {SHIPPING_PRICES["standard"].eta}
+                    </span>
+                  </div>
                   <h3 className="text-[24px] font-bold font-display text-[#333333] mb-4 leading-tight">
                     {story.title}
                   </h3>
