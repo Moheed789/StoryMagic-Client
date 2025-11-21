@@ -27,6 +27,7 @@ type Story = {
   downloadStatus?: string;
   deliveryStatus?: string;
   shippingMethod?: "standard" | "express";
+  expectedDeliveryDate?: string | number;
 };
 
 type StoryPage = {
@@ -1050,14 +1051,22 @@ const MyStories: React.FC = () => {
                 </div>
 
                 <div className="p-3 md:p-6 ">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[12px] font-medium font-story text-[#24212C]">
-                      Expected Delivery:
-                    </span>
-                    <span className="text-[12px] font-bold font-story text-[#34C759]">
-                      {SHIPPING_PRICES[story.shippingMethod ?? "standard"].eta}
-                    </span>
-                  </div>
+                  {story.expectedDeliveryDate && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[12px] font-medium font-story text-[#24212C]">
+                        Expected Delivery:
+                      </span>
+                      <span className="text-[12px] font-bold font-story text-[#34C759]">
+                        {new Date(
+                          story.expectedDeliveryDate
+                        ).toLocaleDateString(undefined, {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  )}
                   <h3 className="text-[24px] font-bold font-display text-[#333333] mb-4 leading-tight">
                     {story.title}
                   </h3>

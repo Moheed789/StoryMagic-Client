@@ -11,7 +11,7 @@ type ExampleCardProps = {
 export default function ExampleCard({
   image,
   title,
-  description = "Story Description Story Description Story Description Story Description ",
+  description = "",
   onPreview,
 }: ExampleCardProps) {
 
