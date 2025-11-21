@@ -25,6 +25,7 @@ type Story = {
   downloadable?: string;
   downloadOption?: string;
   downloadStatus?: string;
+  deliveryStatus?: string;
   shippingMethod?: "standard" | "express";
 };
 
@@ -1054,7 +1055,7 @@ const MyStories: React.FC = () => {
                       Expected Delivery:
                     </span>
                     <span className="text-[12px] font-bold font-story text-[#34C759]">
-                      {SHIPPING_PRICES[story.shippingMethod].eta}
+                      {SHIPPING_PRICES[story.shippingMethod ?? "standard"].eta}
                     </span>
                   </div>
                   <h3 className="text-[24px] font-bold font-display text-[#333333] mb-4 leading-tight">
