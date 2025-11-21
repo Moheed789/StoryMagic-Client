@@ -25,6 +25,7 @@ type Story = {
   downloadable?: string;
   downloadOption?: string;
   downloadStatus?: string;
+  shippingMethod?: "standard" | "express";
 };
 
 type StoryPage = {
@@ -1003,14 +1004,28 @@ const MyStories: React.FC = () => {
                       }}
                     />
 
-                    <button className="absolute bottom-3 left-5 flex items-center gap-1 bg-white px-4 py-1.5 rounded-full shadow-md border border-gray-200 z-20">
-                      <span className="text-[12px] font-medium font-story text-[#24212C]">
-                        Status:
-                      </span>
-                      <span className="text-[12px] font-bold font-story text-[#34C759]">
-                        {story.status || "Printing"}
-                      </span>
-                    </button>
+                    {story.deliveryStatus === "PRINTING" && (
+                      <button className="absolute bottom-3 left-5 flex items-center gap-1 bg-white px-4 py-1.5 rounded-full shadow-md border border-gray-200 z-20">
+                        <span className="text-[12px] font-medium font-story text-[#24212C]">
+                          Status:
+                        </span>
+
+                        <span
+                          className={`text-[12px] font-bold font-story ${
+                            story.deliveryStatus === "PRINTING"
+                              ? "text-[#34C759]"
+                              : story.deliveryStatus === "DELIVERED"
+                              ? "text-green-600"
+                              : "text-slate-500"
+                          }`}
+                        >
+                          {story.deliveryStatus
+                            ? story.deliveryStatus.charAt(0).toUpperCase() +
+                              story.deliveryStatus.slice(1).toLowerCase()
+                            : "Unknown"}
+                        </span>
+                      </button>
+                    )}
 
                     <img
                       src={story.coverImageUrl || "/placeholder-cover.jpg"}
@@ -1039,7 +1054,7 @@ const MyStories: React.FC = () => {
                       Expected Delivery:
                     </span>
                     <span className="text-[12px] font-bold font-story text-[#34C759]">
-                      {SHIPPING_PRICES["standard"].eta}
+                      {SHIPPING_PRICES[story.shippingMethod].eta}
                     </span>
                   </div>
                   <h3 className="text-[24px] font-bold font-display text-[#333333] mb-4 leading-tight">
