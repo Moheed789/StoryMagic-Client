@@ -39,20 +39,14 @@ export default function ExamplesSection() {
         setLoading(true);
         setError(null);
 
+        // 🔥 UPDATED: GET request, no payload
         const res = await fetch(
           `${import.meta.env.VITE_BASE_URL}/stories/examples/list`,
           {
-            method: "POST",
+            method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              storyIds: [
-                "1b13e0dc-2422-4e67-ad17-b1a436546075",
-                "6aa13e22-0ec0-4cff-8d51-9df6a1331ad9",
-                "f7cc7841-fe9c-41b6-8a6b-503fbfc37e1c",
-              ],
-            }),
           }
         );
 
@@ -241,8 +235,9 @@ export default function ExamplesSection() {
         onClose={() => setShowMainPreview(false)}
         maxWidth="max-w-5xl"
       >
-        {previewStep === "intro" && selectedExample && (
-          modalLoading ? (
+        {previewStep === "intro" &&
+          selectedExample &&
+          (modalLoading ? (
             <div className="p-8 text-center text-sm text-[#8E8A99]">
               Loading story details...
             </div>
@@ -278,8 +273,7 @@ export default function ExamplesSection() {
                 </button>
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {previewStep === "pages" && selectedExample && (
           <StoryPreviewModal

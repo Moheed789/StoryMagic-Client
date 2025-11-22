@@ -80,6 +80,8 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
   const [showRegenerate, setShowRegenerate] = useState(false);
   const [regenFeedback, setRegenFeedback] = useState("");
   const [regenLoading, setRegenLoading] = useState(false);
+  const [regenUsed, setRegenUsed] = useState(0);
+
   const isBusy = editLoading || imageGenerating || regenLoading;
   const [localModalStory, setLocalModalStory] = useState<StoryDetails | null>(
     modalStory
@@ -90,46 +92,13 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
     text: "",
   });
 
-  // ✅ Proper state for remaining regenerations
-  const [regensLeft, setRegensLeft] = useState<number>(MAX_REGENERATIONS);
-  const noRegensLeft = regensLeft <= 0;
-
-  // ✅ Initialize regensLeft from backend or localStorage
+  const regenLimit = modalStory?.regenerationLimit ?? 5;
+  const noRegensLeft = regenUsed >= regenLimit;
   useEffect(() => {
-    if (!modalStory?.storyId) {
-      setRegensLeft(MAX_REGENERATIONS);
-      return;
+    if (modalStory) {
+      setRegenUsed(modalStory.regenerationUsed ?? 0);
     }
-
-    const key = `story_regens_left_${modalStory.storyId}`;
-    const saved = typeof window !== "undefined" ? localStorage.getItem(key) : null;
-
-    if (saved !== null) {
-      const parsed = Number(saved);
-      if (!Number.isNaN(parsed)) {
-        setRegensLeft(parsed);
-        return;
-      }
-    }
-
-    // fallback: try backend-provided values
-    let initial = MAX_REGENERATIONS;
-
-    if (typeof modalStory.regenerationRemaining === "number") {
-      initial = modalStory.regenerationRemaining;
-    } else if (typeof modalStory.regenerationUsed === "number") {
-      initial = Math.max(MAX_REGENERATIONS - modalStory.regenerationUsed, 0);
-    }
-
-    setRegensLeft(initial);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(key, String(initial));
-    }
-  }, [
-    modalStory?.storyId,
-    modalStory?.regenerationRemaining,
-    modalStory?.regenerationUsed,
-  ]);
+  }, [modalStory]);
 
   useEffect(() => {
     setLocalModalStory(modalStory);
@@ -493,9 +462,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                 <input
                   type="text"
                   value={editData.author}
-                  onChange={(e) =>
-                    handleInputChange("author", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("author", e.target.value)}
                   disabled={isBusy}
                   className="w-full p-2 border rounded"
                 />
@@ -554,7 +521,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       });
       return;
     }
-    if (regensLeft <= 0) {
+    if (noRegensLeft) {
       return;
     }
 
@@ -594,6 +561,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       let respJson: any = null;
       try {
         respJson = await resp.json();
+        console.log("respJson", respJson);
       } catch {
         respJson = null;
       }
@@ -646,29 +614,13 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
               updated.coverImageUrl = status.imageUrl;
             }
           }
+          updated.regenerationUsed = respJson?.regenerationUsed ?? (regenUsed + 1);
+
+
+          setRegenUsed((prev) => Math.min(prev + 1, regenLimit));
 
           setLocalModalStory(updated);
           if (onStoryUpdate) onStoryUpdate(updated);
-
-          const key = `story_regens_left_${storyIdFromPages}`;
-
-          if (typeof respJson?.regenerationRemaining === "number") {
-            setRegensLeft(respJson.regenerationRemaining);
-            if (typeof window !== "undefined") {
-              localStorage.setItem(
-                key,
-                String(respJson.regenerationRemaining)
-              );
-            }
-          } else {
-            setRegensLeft((prev) => {
-              const next = prev > 0 ? prev - 1 : 0;
-              if (typeof window !== "undefined") {
-                localStorage.setItem(key, String(next));
-              }
-              return next;
-            });
-          }
 
           setRegenLoading(false);
           setImageGenerating(false);
@@ -719,7 +671,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-[#8C5AF2]">
               {!noRegensLeft
-                ? `${MAX_REGENERATIONS - regensLeft} / ${MAX_REGENERATIONS} regenerations used`
+                ? `${regenUsed} / ${regenLimit} regenerations used`
                 : "You've used all 5 regenerations for this story."}
             </span>
 
