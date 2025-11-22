@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "./button";
-import humanRobot from "../../../public/humanrobot.jpg";
 
 type ExampleCardProps = {
   image: string;
@@ -12,16 +11,16 @@ type ExampleCardProps = {
 export default function ExampleCard({
   image,
   title,
-  description = "Story Description Story Description Story Description Story Description ",
+  description = "",
   onPreview,
 }: ExampleCardProps) {
-  console.log("Rendering ExampleCard with image:", humanRobot);
+
   return (
-    <article className="bg-white rounded-[16px] border  border-[#ECEAF3] shadow-[0_6px_18px_rgba(0,0,0,0.06)] overflow-hidden">
+    <article className="bg-white rounded-[16px] border border-[#ECEAF3] shadow-[0_6px_18px_rgba(0,0,0,0.06)] overflow-hidden">
       <div className="relative w-full overflow-hidden">
         <div className="aspect-[16/10] w-full">
           <img
-            src={humanRobot}
+            src={image}        
             alt={title}
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -32,6 +31,7 @@ export default function ExampleCard({
         <h3 className="text-[24px] font-display font-semibold text-[#24212C]">
           {title}
         </h3>
+
         {description ? (
           <p className="mt-2 text-[12px] leading-5 text-[#7B7A86] line-clamp-2">
             {description}

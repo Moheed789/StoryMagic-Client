@@ -16,10 +16,11 @@ const secureImageStyles: React.CSSProperties = {
   userSelect: "none",
   WebkitUserSelect: "none",
   msUserSelect: "none",
-  pointerEvents: "none",
   WebkitTouchCallout: "none",
   filter: "opacity(0.98)",
 };
+
+const MAX_REGENERATIONS = 5;
 
 interface StoryPage {
   pageNumber?: number;
@@ -46,6 +47,9 @@ interface StoryDetails {
   userId: string;
   pages?: StoryPage[];
   author?: string;
+  regenerationLimit?: number;
+  regenerationUsed?: number;
+  regenerationRemaining?: number;
 }
 
 interface StoryPreviewModalProps {
@@ -56,6 +60,7 @@ interface StoryPreviewModalProps {
   currentPage: number;
   setCurrentPage: (page: number) => void;
   onStoryUpdate?: (updatedStory: StoryDetails) => void;
+  disableActions?: boolean;
 }
 
 const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
@@ -66,23 +71,34 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
   currentPage,
   setCurrentPage,
   onStoryUpdate,
+  disableActions = false,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const [editLoading, setEditLoading] = useState(false);
   const [imageGenerating, setImageGenerating] = useState(false);
+  const [showRegenerate, setShowRegenerate] = useState(false);
+  const [regenFeedback, setRegenFeedback] = useState("");
+  const [regenLoading, setRegenLoading] = useState(false);
+  const [regenUsed, setRegenUsed] = useState(0);
 
-  const isBusy = editLoading || imageGenerating;
-
+  const isBusy = editLoading || imageGenerating || regenLoading;
   const [localModalStory, setLocalModalStory] = useState<StoryDetails | null>(
     modalStory
   );
-
   const [editData, setEditData] = useState({
     title: "",
     author: "",
     text: "",
   });
+
+  const regenLimit = modalStory?.regenerationLimit ?? 5;
+  const noRegensLeft = regenUsed >= regenLimit;
+  useEffect(() => {
+    if (modalStory) {
+      setRegenUsed(modalStory.regenerationUsed ?? 0);
+    }
+  }, [modalStory]);
 
   useEffect(() => {
     setLocalModalStory(modalStory);
@@ -162,6 +178,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
         text: p?.text || p?.content || "",
       });
     }
+
+    setRegenFeedback("");
+    setShowRegenerate(false);
   }, [currentPage, localModalStory, modalLoading]);
 
   const generateFrontCoverImage = async (
@@ -341,33 +360,57 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
   const renderPageText = () => {
     const pageText = getCurrentPageText();
+    const currentPageData = getCurrentPageData();
 
     if (currentPage === 0 && frontCover) {
       const finalTitle = pages.find((p) => p.title)?.title;
       const author = pages.find((p) => p.author)?.author;
 
+      const coverPrompt =
+        currentPageData?.imagePrompt ??
+        frontCover?.imagePrompt ??
+        localModalStory?.imagePrompt ??
+        "";
+
       return (
-        <div className="mb-6">
-          <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3">
-            Story Information
-          </h3>
-          <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] p-4">
-            <div className="space-y-3">
-              <div>
-                <span className="text-sm font-bold text-[#333333]">Title:</span>
-                <span className="ml-2 text-base font-semibold text-[#8C5AF2]">
-                  {finalTitle || "Untitled"}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-bold text-[#333333]">
-                  Author:
-                </span>
-                <span className="ml-2 text-sm">{author || "No author"}</span>
+        <>
+          <div className="mb-6">
+            <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3">
+              Story Information
+            </h3>
+            <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] p-4">
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-bold text-[#333333]">
+                    Title:
+                  </span>
+                  <span className="ml-2 text-base font-semibold text-[#8C5AF2]">
+                    {finalTitle || "Untitled"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-[#333333]">
+                    Author:
+                  </span>
+                  <span className="ml-2 text-sm">{author || "No author"}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+
+          {coverPrompt && (
+            <div className="mb-6">
+              <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3">
+                Given Prompt
+              </h3>
+              <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] p-4">
+                <p className="whitespace-pre-line text-sm md:text-base">
+                  {coverPrompt}
+                </p>
+              </div>
+            </div>
+          )}
+        </>
       );
     }
 
@@ -468,6 +511,198 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
     );
   };
 
+  const handleRegenerateImage = async () => {
+    if (!localModalStory) return;
+    if (!regenFeedback.trim()) {
+      toast({
+        title: "Feedback required",
+        description: "Please describe what you want to change in the image.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (noRegensLeft) {
+      return;
+    }
+
+    try {
+      setRegenLoading(true);
+      setImageGenerating(true);
+
+      const session: any = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login first",
+          variant: "destructive",
+        });
+        setRegenLoading(false);
+        setImageGenerating(false);
+        return;
+      }
+
+      const pageNo = getCurrentPageNumber();
+      const storyIdFromPages = pages.find((p) => p.storyId)?.storyId;
+      if (!storyIdFromPages) throw new Error("Story not found for page");
+
+      const resp = await fetch(
+        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyIdFromPages}/pages/${pageNo}/regenerate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ feedback: regenFeedback }),
+        }
+      );
+
+      let respJson: any = null;
+      try {
+        respJson = await resp.json();
+        console.log("respJson", respJson);
+      } catch {
+        respJson = null;
+      }
+
+      if (!resp.ok) {
+        throw new Error(
+          respJson?.message ||
+            "You have used all 5 regenerations for this story."
+        );
+      }
+
+      let attempts = 0;
+      const maxAttempts = 30;
+
+      const poll = async () => {
+        if (attempts >= maxAttempts) {
+          toast({
+            title: "Timeout",
+            description: "Image regeneration took too long",
+            variant: "destructive",
+          });
+          setRegenLoading(false);
+          setImageGenerating(false);
+          return;
+        }
+
+        attempts++;
+
+        const statusResp = await fetch(
+          `${
+            import.meta.env.VITE_BASE_URL
+          }/stories/${storyIdFromPages}/pages/${pageNo}/image-status`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const status = await statusResp.json();
+
+        if (status.status === "COMPLETED" && status.imageUrl) {
+          const updated = { ...localModalStory! };
+          const current = getCurrentPageData();
+          const idx = pages.findIndex((p) => p === current);
+
+          if (idx !== -1) {
+            updated.pages![idx] = {
+              ...updated.pages![idx],
+              imageUrl: status.imageUrl,
+            };
+
+            if (idx === pages.findIndex((p) => p.type === "COVER_FRONT")) {
+              updated.coverImageUrl = status.imageUrl;
+            }
+          }
+          updated.regenerationUsed = respJson?.regenerationUsed ?? (regenUsed + 1);
+
+
+          setRegenUsed((prev) => Math.min(prev + 1, regenLimit));
+
+          setLocalModalStory(updated);
+          if (onStoryUpdate) onStoryUpdate(updated);
+
+          setRegenLoading(false);
+          setImageGenerating(false);
+          setShowRegenerate(false);
+        } else if (status.status === "FAILED") {
+          toast({
+            title: "Failed",
+            description: "Image regeneration failed",
+            variant: "destructive",
+          });
+          setRegenLoading(false);
+          setImageGenerating(false);
+        } else {
+          setTimeout(poll, 2000);
+        }
+      };
+
+      setTimeout(poll, 2000);
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+      setRegenLoading(false);
+      setImageGenerating(false);
+    }
+  };
+
+  const renderRegeneratePanel = () => {
+    if (!showRegenerate) return null;
+
+    return (
+      <div className="mt-6">
+        <h3 className="text-[14px] font-story font-semibold text-[#6F677E] mb-[9px]">
+          What Would You Like To Adjust In The Image?
+        </h3>
+
+        <div>
+          <textarea
+            className="w-full h-32 rounded-[16px] border border-[#E5E7EB] bg-[#F5F5F5] focus:bg-[#F7F5FE] px-4 py-3 text-sm text-[#4B5563] resize-none focus:outline-none focus:ring-1 focus:ring-[#8C5AF2]"
+            placeholder="Example: Make the robot hold a flower"
+            value={regenFeedback}
+            onChange={(e) => setRegenFeedback(e.target.value)}
+            disabled={isBusy || noRegensLeft}
+          />
+
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-xs text-[#8C5AF2]">
+              {!noRegensLeft
+                ? `${regenUsed} / ${regenLimit} regenerations used`
+                : "You've used all 5 regenerations for this story."}
+            </span>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRegenerate(false);
+                  setRegenFeedback("");
+                }}
+                disabled={isBusy}
+                className="px-6 py-2 rounded-[6px] border border-[#D4D4D8] text-[12px] text-[#24212C] bg-white disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRegenerateImage}
+                disabled={isBusy || !regenFeedback.trim() || noRegensLeft}
+                className="px-8 py-2 rounded-[6px] bg-[#8C5AF2] text-[12px] text-white font-semibold disabled:opacity-50"
+              >
+                {regenLoading ? "Applying..." : "Apply Now"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -485,15 +720,43 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
             <>
               {isEditing ? renderEditForm() : renderPageText()}
 
-              {!isFrontCover && !isBackCover && (
-                <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  disabled={isBusy}
-                  className="mt-4 px-4 py-2 bg-[#8C5AF2] text-white rounded disabled:opacity-50"
-                >
-                  {isEditing ? "Cancel Edit" : "Edit Story"}
-                </button>
+              {!disableActions && !isFrontCover && !isBackCover && (
+                <div className="mt-4 flex flex-col gap-2">
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => {
+                        const nextEditing = !isEditing;
+                        setIsEditing(nextEditing);
+                        if (nextEditing) setShowRegenerate(false);
+                      }}
+                      disabled={isBusy}
+                      className="px-6 py-2 border border-[#D2D2D2] text-[14px] rounded-[6px] disabled:opacity-50"
+                    >
+                      {isEditing ? "Cancel Edit" : "Edit Story"}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (noRegensLeft) return;
+                        const nextShow = !showRegenerate;
+                        setShowRegenerate(nextShow);
+                        if (nextShow) setIsEditing(false);
+                      }}
+                      disabled={isBusy || noRegensLeft}
+                      title={
+                        noRegensLeft
+                          ? "You’ve used all 5 regenerations for this story."
+                          : ""
+                      }
+                      className="px-6 py-2 text-[14px] bg-[#8C5AF2] rounded-[6px] text-white disabled:bg-[#E5E7EB] disabled:text-[#9CA3AF] disabled:cursor-not-allowed"
+                    >
+                      Regenerate Image
+                    </button>
+                  </div>
+                </div>
               )}
+
+              {!disableActions && renderRegeneratePanel()}
             </>
           )}
         </div>
