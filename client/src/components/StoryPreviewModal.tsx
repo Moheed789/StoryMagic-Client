@@ -547,7 +547,9 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       if (!storyIdFromPages) throw new Error("Story not found for page");
 
       const resp = await fetch(
-        `https://keigr6djr2.execute-api.us-east-1.amazonaws.com/dev/stories/${storyIdFromPages}/pages/${pageNo}/regenerate`,
+        `${
+            import.meta.env.VITE_BASE_URL
+          }/stories/${storyIdFromPages}/pages/${pageNo}/regenerate`,
         {
           method: "POST",
           headers: {
