@@ -14,15 +14,24 @@ export default function ExampleCard({
   description = "",
   onPreview,
 }: ExampleCardProps) {
-
   return (
     <article className="bg-white rounded-[16px] border border-[#ECEAF3] shadow-[0_6px_18px_rgba(0,0,0,0.06)] overflow-hidden">
       <div className="relative w-full overflow-hidden">
-        <div className="aspect-[16/10] w-full">
+        <div
+          className="absolute inset-0 blur-2xl scale-110"
+          style={{
+            backgroundImage: `url(${image})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.5,
+          }}
+        ></div>
+
+        <div className="relative z-10  h-[240px] w-full aspect-[16/10]">
           <img
-            src={image}        
+            src={image}
             alt={title}
-            className="absolute inset-0 h-full w-full object-cover"
+            className="w-full h-full object-contain"
           />
         </div>
       </div>
@@ -31,13 +40,6 @@ export default function ExampleCard({
         <h3 className="text-[24px] font-display font-semibold text-[#24212C]">
           {title}
         </h3>
-
-        {description ? (
-          <p className="mt-2 text-[12px] leading-5 text-[#7B7A86] line-clamp-2">
-            {description}
-          </p>
-        ) : null}
-
         <Button onClick={onPreview} className="mt-4 w-full">
           Preview
         </Button>
