@@ -760,38 +760,6 @@ const MyStories: React.FC = () => {
   ) =>
     purchaseLoading[storyId]?.[option === "pdf_only" ? "pdf" : "book"] || false;
 
-  // const openPreviewModal = async (storyId: string) => {
-  //   const purchased = hasUnlimitedPreviews(storyId);
-  //   const count = storyPreviewCounts[storyId] || 0;
-
-  //   if (!purchased && count <= 0) {
-  //     setUnlockModalStoryId(storyId);
-  //     setShowUnlockModal(true);
-  //     return;
-  //   }
-
-  //   setModalLoading(true);
-  //   setIsModalOpen(true);
-  //   setCurrentPage(0);
-
-  //   try {
-  //     const session: any = await fetchAuthSession();
-  //     const token = session?.tokens?.idToken?.toString();
-  //     const userId = session?.tokens?.idToken?.payload?.sub;
-
-  //     const res = await fetch(
-  //       `${import.meta.env.VITE_BASE_URL}/stories/${storyId}`,
-  //       {
-  //         headers: {
-  //           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
-
-  //     if (!res.ok) throw new Error("Failed to fetch story");
-  //     const data = await res.json();
-  //     setModalStory(data);
   const openPreviewModal = async (storyId: string) => {
     const purchased = hasUnlimitedPreviews(storyId);
     const count = storyPreviewCounts[storyId] || 0;
@@ -820,17 +788,10 @@ const MyStories: React.FC = () => {
           },
         }
       );
-
-      // if (!res.ok) throw new Error("Failed to fetch story");
-      // const data = await res.json();
-      // setModalStory(data);
       if (!res.ok) throw new Error("Failed to fetch story");
       const data = await res.json();
-
-      // list se story nikaal lo
       const listStory = stories.find((s) => s.storyId === storyId);
 
-      // backend detail + list waale regen fields merge
       const merged: StoryDetails = {
         ...data,
         regenerationLimit:

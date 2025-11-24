@@ -39,6 +39,9 @@ interface StoryDetails {
   storyId: string;
   title: string;
   imagePrompt?: string;
+  originalPrompt?: string;
+  // support optional nested stories array that may contain originalPrompt (some API responses include this)
+  stories?: { originalPrompt?: string }[];
   status: string;
   totalPages: number;
   coverImageUrl?: string;
@@ -367,10 +370,11 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       const author = pages.find((p) => p.author)?.author;
 
       const coverPrompt =
-        currentPageData?.imagePrompt ??
-        frontCover?.imagePrompt ??
-        localModalStory?.imagePrompt ??
-        "";
+          currentPageData?.imagePrompt ??
+          frontCover?.imagePrompt ??
+          localModalStory?.imagePrompt ??
+          "";
+     
 
       return (
         <>
@@ -401,7 +405,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           {coverPrompt && (
             <div className="mb-6">
               <h3 className="text-base md:text-lg font-story font-semibold text-gray-900 mb-3">
-                Given Prompt
+                Image Description
               </h3>
               <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] p-4">
                 <p className="whitespace-pre-line text-sm md:text-base">
@@ -548,8 +552,8 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
 
       const resp = await fetch(
         `${
-            import.meta.env.VITE_BASE_URL
-          }/stories/${storyIdFromPages}/pages/${pageNo}/regenerate`,
+          import.meta.env.VITE_BASE_URL
+        }/stories/${storyIdFromPages}/pages/${pageNo}/regenerate`,
         {
           method: "POST",
           headers: {
@@ -616,8 +620,8 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
               updated.coverImageUrl = status.imageUrl;
             }
           }
-          updated.regenerationUsed = respJson?.regenerationUsed ?? (regenUsed + 1);
-
+          updated.regenerationUsed =
+            respJson?.regenerationUsed ?? regenUsed + 1;
 
           setRegenUsed((prev) => Math.min(prev + 1, regenLimit));
 
