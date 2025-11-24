@@ -37,13 +37,13 @@ export default function ExampleCard({
       </div>
 
       <div className="p-6 bg-[#f4f3f7] flex flex-col justify-between">
-        <h3 className="text-[24px] font-display font-semibold text-[#24212C]">
+        <h3 className="text-[24px] font-display font-semibold text-[#24212C]  line-clamp-2 min-h-[72px]">
           {title}
         </h3>
         <div>
-        <Button onClick={onPreview} className="mt-4 w-full">
-          Preview
-        </Button>
+          <Button onClick={onPreview} className="mt-4 w-full">
+            Preview
+          </Button>
         </div>
       </div>
     </article>
