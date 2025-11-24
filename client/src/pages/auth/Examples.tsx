@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import ExampleCard from "@/components/ui/exampleCard";
 import Modal from "@/components/Modal";
 import StoryPreviewModal from "@/components/StoryPreviewModal";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader } from "lucide-react";
 
 type ExampleStory = {
   id: string;
@@ -29,7 +29,6 @@ export default function ExamplesSection() {
   const [previewStep, setPreviewStep] = useState<"intro" | "pages">("intro");
   const [examplePage, setExamplePage] = useState(0);
 
-  // modal ke liye detail fetch state
   const [modalStory, setModalStory] = useState<any | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
@@ -39,7 +38,6 @@ export default function ExamplesSection() {
         setLoading(true);
         setError(null);
 
-        // 🔥 UPDATED: GET request, no payload
         const res = await fetch(
           `${import.meta.env.VITE_BASE_URL}/stories/examples/list`,
           {
@@ -89,7 +87,6 @@ export default function ExamplesSection() {
     fetchExamples();
   }, []);
 
-  // 🔥 jab preview pe click hoga, yeh function chalega
   const handleOpenExample = async (item: ExampleStory) => {
     try {
       setPreviewStep("intro");
@@ -115,7 +112,6 @@ export default function ExamplesSection() {
 
       const data = await res.json();
 
-      // selectedExample ko detail se enrich kar dete hain
       setSelectedExample((prev) => {
         const base = prev || item;
         return {
@@ -147,7 +143,6 @@ export default function ExamplesSection() {
     }
   };
 
-  // agar API ne pages diye hain to woh use karo, warna fallback fake pages
   const examplePages =
     modalStory?.pages && Array.isArray(modalStory.pages)
       ? modalStory.pages
@@ -205,7 +200,7 @@ export default function ExamplesSection() {
           )}
 
           {error && !loading && (
-            <p className="text-center text-sm text-red-500">{error}</p>
+            <p className="text-center text-sqm text-red-500">{error}</p>
           )}
 
           {!loading && !error && examples.length === 0 && (
@@ -238,8 +233,11 @@ export default function ExamplesSection() {
         {previewStep === "intro" &&
           selectedExample &&
           (modalLoading ? (
-            <div className="p-8 text-center text-sm text-[#8E8A99]">
-              Loading story details...
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader className="h-8 w-8 text-[#8C5AF2] animate-spin" />
+              <p className="mt-4 text-sm text-[#8E8A99]">
+                Loading story details...
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
