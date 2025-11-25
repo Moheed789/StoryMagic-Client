@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Modal from "./Modal";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader } from "lucide-react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -370,11 +370,10 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       const author = pages.find((p) => p.author)?.author;
 
       const coverPrompt =
-          currentPageData?.imagePrompt ??
-          frontCover?.imagePrompt ??
-          localModalStory?.imagePrompt ??
-          "";
-     
+        currentPageData?.imagePrompt ??
+        frontCover?.imagePrompt ??
+        localModalStory?.imagePrompt ??
+        "";
 
       return (
         <>
@@ -718,10 +717,10 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
       maxWidth="max-w-[95vw] md:max-w-5xl"
       className="max-h-[85vh] overflow-y-auto"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 py-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-16 px-8 py-6 ">
         <div className="order-2 md:order-1">
           {modalLoading ? (
-            <div>Loading…</div>
+            <Loader className="h-8 w-8 text-[#8C5AF2] animate-spin" />
           ) : (
             <>
               {isEditing ? renderEditForm() : renderPageText()}
@@ -736,7 +735,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                         if (nextEditing) setShowRegenerate(false);
                       }}
                       disabled={isBusy}
-                      className="px-6 py-2 border border-[#D2D2D2] text-[14px] rounded-[6px] disabled:opacity-50"
+                      className="px-4 sm:px-6 py-2 border border-[#D2D2D2] text-[12px] sm:text-[14px] rounded-[6px] disabled:opacity-50"
                     >
                       {isEditing ? "Cancel Edit" : "Edit Story"}
                     </button>
@@ -754,7 +753,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                           ? "You’ve used all 5 regenerations for this story."
                           : ""
                       }
-                      className="px-6 py-2 text-[14px] bg-[#8C5AF2] rounded-[6px] text-white disabled:bg-[#E5E7EB] disabled:text-[#9CA3AF] disabled:cursor-not-allowed"
+                      className="px-4 sm:px-6 py-2 text-[12px] sm:text-[14px] bg-[#8C5AF2] rounded-[6px] text-white disabled:bg-[#E5E7EB] disabled:text-[#9CA3AF] disabled:cursor-not-allowed"
                     >
                       Regenerate Image
                     </button>
@@ -767,18 +766,22 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
           )}
         </div>
 
-        <div className="order-1 md:order-2">
+        <div className="order-1 md:order-2 max-w-[411px] mx-auto md:mx-0">
           <h3 className="text-base md:text-lg font-story font-semibold mb-3">
             Image Preview
           </h3>
 
-          <div className="relative rounded-[20px] overflow-hidden">
-            {getCurrentPageImage() ? (
+          <div className="relative rounded-[20px] overflow-hidden  max-w-[411px]">
+            {modalLoading ? (
+              <div className="w-full aspect-square bg-gray-100 flex items-center justify-center rounded-[20px]">
+                <Loader className="h-8 w-8 text-[#8C5AF2] animate-spin" />
+              </div>
+            ) : getCurrentPageImage() ? (
               <>
                 <img
                   src={getCurrentPageImage()!}
                   alt={getPageTitle()}
-                  className={`w-full aspect-square object-cover rounded ${
+                  className={`w-full aspect-auto object-cover rounded ${
                     imageGenerating ? "opacity-50" : "opacity-100"
                   }`}
                 />
