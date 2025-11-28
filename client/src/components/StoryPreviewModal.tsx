@@ -407,7 +407,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                 Image Description
               </h3>
               <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] p-4">
-                <p className="whitespace-pre-line text-sm md:text-base">
+                <p className="whitespace-pre-line text-sm md:text-base select-none">
                   {coverPrompt}
                 </p>
               </div>
@@ -424,7 +424,7 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
             {isBackCover ? "Back Cover Content" : "Story Content"}
           </h3>
           <div className="rounded-[20px] bg-[#EFEFEF] text-[#616161] p-4">
-            <p className="whitespace-pre-line text-sm md:text-base">
+            <p className="whitespace-pre-line text-sm md:text-base select-none">
               {pageText}
             </p>
           </div>
@@ -781,13 +781,13 @@ const StoryPreviewModal: React.FC<StoryPreviewModalProps> = ({
                 <img
                   src={getCurrentPageImage()!}
                   alt={getPageTitle()}
-                  className={`w-full aspect-auto object-cover rounded ${
+                  className={`w-full aspect-auto object-cover rounded select-none pointer-events-none ${
                     imageGenerating ? "opacity-50" : "opacity-100"
                   }`}
                 />
 
                 {imageGenerating && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[20px]">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[20px] select-none pointer-events-none">
                     <div className="text-white text-sm">Generating...</div>
                   </div>
                 )}

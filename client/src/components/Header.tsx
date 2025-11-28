@@ -76,9 +76,21 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div
+            className="flex items-center gap-1 sm:gap-2 cursor-pointer"
+            onClick={() => {
+              navigate("/");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          >
             <div className="h-8 w-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
-              <BookOpenIcon className="h-5 w-5 text-primary-foreground" />
+              <BookOpenIcon
+                className="h-5 w-5 text-primary-foreground cursor-pointer"
+                onClick={() => {
+                  navigate("/");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              />
             </div>
             <h1
               className="text-md md:text-xl font-display font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent cursor-pointer"

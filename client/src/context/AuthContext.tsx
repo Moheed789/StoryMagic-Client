@@ -96,9 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     "idea"
   );
   const [storyId, setStoryId] = useState();
-  const [selectedPageCount, setSelectedPageCount] = useState<number | null>(
-    null
-  );
+  const [selectedPageCount, setSelectedPageCount] = useState<number | null>(10);
   const [storyTitle, setStoryTitle] = useState();
   const [authorName, setAuthorName] = useState<string>(
     (user as any)?.attributes?.name ||
@@ -163,7 +161,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
-
   const signUpUser = async (
     email: string,
     password: string,
@@ -195,10 +192,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signInUser = async (email: string, password: string) => {
     const res = await signIn({ username: email, password });
-    
+
     const challengeName = res?.nextStep?.challengeName;
     const signInStep = res?.nextStep?.signInStep;
-    
+
     if (
       challengeName === "PASSWORD_VERIFIER" ||
       challengeName === "CONFIRM_SIGN_UP" ||
@@ -207,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     ) {
       return res;
     }
-    
+
     try {
       const currentUser = await getCurrentUser();
       const attributes = await fetchUserAttributes();
@@ -216,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (err) {
       console.error("Error getting current user:", err);
     }
-    
+
     return res;
   };
 
@@ -239,45 +236,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     await resetPassword({ username: email });
   };
 
-const confirmForgotPassword = async (
-  email: string,
-  code: string,
-  newPassword: string
-) => {
-  try {
-    await confirmResetPassword({
-      username: email,
-      confirmationCode: code,
-      newPassword, 
-    });
-  } catch (err: any) {
-    console.error("Error confirming password:", err);
-    throw err;
-  }
-};
+  const confirmForgotPassword = async (
+    email: string,
+    code: string,
+    newPassword: string
+  ) => {
+    try {
+      await confirmResetPassword({
+        username: email,
+        confirmationCode: code,
+        newPassword,
+      });
+    } catch (err: any) {
+      console.error("Error confirming password:", err);
+      throw err;
+    }
+  };
 
   const verifyForgotCode = async (email: string, code: string) => {
     try {
       await confirmResetPassword({
         username: (email || "").trim(),
         confirmationCode: (code || "").trim(),
-        newPassword: "x", 
+        newPassword: "x",
       });
       return false;
     } catch (err: any) {
       const name = err?.name;
       const message: string = err?.message || "";
 
-      if (name === "InvalidPasswordException" || message.includes("Password did not conform")) {
+      if (
+        name === "InvalidPasswordException" ||
+        message.includes("Password did not conform")
+      ) {
         return true;
-      } else if (name === "CodeMismatchException" || name === "ExpiredCodeException") {
+      } else if (
+        name === "CodeMismatchException" ||
+        name === "ExpiredCodeException"
+      ) {
         return false;
       } else {
         return false;
       }
     }
   };
-
 
   return (
     <AuthContext.Provider
