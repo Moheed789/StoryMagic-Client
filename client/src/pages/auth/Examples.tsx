@@ -19,7 +19,7 @@ type ExampleStory = {
 
 export default function ExamplesSection() {
   const [examples, setExamples] = useState<ExampleStory[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedExample, setSelectedExample] = useState<ExampleStory | null>(
@@ -196,7 +196,20 @@ export default function ExamplesSection() {
 
         <section className="max-w-7xl mx-auto px-6 md:mt-[62px]">
           {loading && (
-            <p className="text-center text-sm text-[#8E8A99]">Loading...</p>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-[#F1F0F5] bg-white p-4 animate-pulse"
+                >
+                  <div className="aspect-[4/3] w-full rounded-xl bg-[#F3F0FA]" />
+
+                  <div className="mt-4 h-4 w-3/4 rounded bg-[#F3F0FA]" />
+                  <div className="mt-2 h-3 w-full rounded bg-[#F3F0FA]" />
+                  <div className="mt-2 h-3 w-5/6 rounded bg-[#F3F0FA]" />
+                </div>
+              ))}
+            </div>
           )}
 
           {error && !loading && (
@@ -233,11 +246,29 @@ export default function ExamplesSection() {
         {previewStep === "intro" &&
           selectedExample &&
           (modalLoading ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <Loader className="h-8 w-8 text-[#8C5AF2] animate-spin" />
-              <p className="mt-4 text-sm text-[#8E8A99]">
-                Loading story details...
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 animate-pulse">
+              {/* Left: image skeleton */}
+              <div className="w-full rounded-[20px] bg-[#F3F0FA] aspect-[3/4]" />
+
+              {/* Right: text skeletons */}
+              <div className="flex flex-col gap-4">
+                {/* Title skeleton */}
+                <div className="h-8 w-3/4 rounded bg-[#F3F0FA]" />
+
+                {/* "Given Prompt" heading skeleton */}
+                <div className="h-4 w-1/3 rounded bg-[#F3F0FA]" />
+
+                {/* Description box skeleton */}
+                <div className="bg-[#EFEFEF] rounded-xl p-4 space-y-2">
+                  <div className="h-3 w-full rounded bg-[#F3F0FA]" />
+                  <div className="h-3 w-5/6 rounded bg-[#F3F0FA]" />
+                  <div className="h-3 w-2/3 rounded bg-[#F3F0FA]" />
+                  <div className="h-3 w-1/2 rounded bg-[#F3F0FA]" />
+                </div>
+
+                {/* Button skeleton */}
+                <div className="mt-2 h-10 w-40 rounded-lg bg-[#F3F0FA]" />
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
@@ -258,7 +289,7 @@ export default function ExamplesSection() {
                   Given Prompt
                 </h4>
 
-                <p className="bg-[#EFEFEF] px-[16px] pt-[20px] pb-[81px] rounded-xl text-sm text-[#616161]">
+                <p className="bg-[#EFEFEF] px-[16px] pt-[20px] pb-[81px] rounded-xl text-sm text-[#616161] select-none">
                   {getPromptText()}
                 </p>
 
