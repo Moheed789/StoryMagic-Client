@@ -362,7 +362,7 @@ const BookCustomizationModal: React.FC<Props> = ({
                         ${SHIPPING_PRICES[opt].price.toFixed(2)}
                       </p>
                       <span className="text-[12px] font-normal text-[#6F677E]">
-                        Estimated Price
+                        Estimated Prices
                       </span>
                     </div>
 
@@ -724,12 +724,12 @@ const BookCustomizationModal: React.FC<Props> = ({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-600">Shipping</span>
-                <span className="font-medium">
-                  ${shippingPrice.toFixed(2)}
-                </span>
+                <span className="font-medium">${shippingPrice.toFixed(2)}</span>
               </div>
               <div className="pt-2 mt-1 border-t border-slate-200 flex items-center justify-between">
-                <span className="text-slate-800 font-semibold">Total</span>
+                <span className="text-slate-800 font-semibold">
+                  Estimated Total
+                </span>
                 <span className="text-[#7B5AE9] font-semibold">
                   ${total.toFixed(2)}
                 </span>

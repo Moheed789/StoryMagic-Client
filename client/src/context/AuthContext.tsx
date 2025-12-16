@@ -108,12 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentPages, setCurrentPages] = useState<StoryPage[]>([]);
   const [characterDescription, setCharacterDescription] = useState<string>("");
   const [loading, setLoading] = useState(true);
-
   const isAuthenticated = !!user;
-
-  // ============================
-  // Fetch helper for private APIs
-  // ============================
   const fetchWithAuth = async (endpoint: string) => {
     try {
       const session: any = await (
@@ -135,10 +130,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return null;
     }
   };
-
-  // ============================
-  // Initialization
-  // ============================
   useEffect(() => {
     let mounted = true;
 

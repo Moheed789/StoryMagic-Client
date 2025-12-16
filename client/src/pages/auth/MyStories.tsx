@@ -76,6 +76,7 @@ type ShippingAddress = {
 
 type BookPurchaseForm = {
   storyId: string;
+  total_price?: number;
   pageOption: "10" | "15" | "20";
   shipping: "standard" | "express";
   shipping_address: ShippingAddress;
@@ -552,7 +553,7 @@ const MyStories: React.FC = () => {
         storyId: form.storyId,
         pageCount: Number(form.pageOption),
         shippingOption: form.shipping,
-        totalPrice: Math.round(calcTotal(form) * 100),
+        totalPrice: parseFloat((form?.total_price ?? 0).toString()),
         shippingAddress: {
           name: form.shipping_address.name,
           line1: form.shipping_address.street1,
